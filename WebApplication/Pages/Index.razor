@@ -1,0 +1,17 @@
+﻿@page "/"
+
+<h1>Hello, world!</h1>
+
+<p>
+    <input @bind="currentValue" /> Current value: @currentValue
+</p>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?"/>
+
+@code {
+    private string currentValue;
+
+    private string CurrentValue { get; set; }
+}

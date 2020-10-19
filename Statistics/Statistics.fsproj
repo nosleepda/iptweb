@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <RootNamespace>DescriptiveStatistics</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Utilities.fs" />
+        <Compile Include="StatisticsData.fs" />
+        <Compile Include="DescriptiveStatistics.fs" />
+        <Compile Include="Hypothesis.fs" />
+        <Compile Include="Analysis.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
+      <PackageReference Include="MathNet.Numerics.FSharp" Version="4.12.0" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,138 @@
+﻿@page "/analysis"
+
+@using Plotly.Blazor.Traces.ScatterLib
+@using WebApplication.Data
+@inject GraphService GraphService
+
+<p>
+    <input @bind="XsInput" /> 
+    <input @bind="YsInput" /> 
+    <input type="number" @bind="a" /> 
+    <button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
+    <button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
+    <button type="button" class="btn btn-primary" @onclick="DeleteScatter">Pop</button>
+</p>
+
+<div class="" style="display: flex; justify-content: flex-start">
+    <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+                 @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+    
+    @if (at == null)
+    {
+    	<div>Loading...</div>
+    }
+    else if (at == null && IsClicked)
+    {
+        <div>Loading2...</div>
+    }
+    else
+    {
+        <div class="">
+            <p>Среднее значение Х: @at.MeanX</p>
+            <p>Среднее значение Y: @at.MeanY</p>
+            <p>Значение Sx: @at.Sx</p>
+            <p>Значение Sy: @at.Sy</p>
+            <p>Коэффициент корреляции: @at.Cr</p>
+            <p>Значимость: @at.SignificanceCr</p>
+            <p>@at.ConfidenceIntervalP</p>
+            <p>Эмпирическое уравнение регрессии Y на X: @at.EquationYX</p>
+            <p>Эмпирическое уравнение регрессии X на Y: @at.EquationXY</p>
+            <p>@at.confidenceIntervalA</p>
+            <p>@at.confidenceIntervalB</p>
+            <p>Коэффициент детерминации: @at.R2</p>
+            <p>@at.SignificanceFisherSnedecor</p>
+            <p>Коэффициент эластичности: @at.K</p>
+        </div>
+    }
+</div>
+
+@code
+{
+    private string XsInput;
+    private string YsInput;
+    private double a;
+    private bool IsClicked;
+
+    private Statistics.Analysis at;
+    
+    PlotlyChart chart;
+
+    Config config = new Config
+    {
+        Responsive = true
+    };
+
+    Layout layout = new Layout
+    {
+        // // Title = new Title
+        // // {
+        // //     Text = "Scatter"
+        // // },
+        // YAxis = new List<YAxis>
+        // {
+        //     new YAxis
+        //     {
+        //         Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title
+        //         {
+        //             Text = "Y"
+        //         }
+        //     }
+        // },
+        // XAxis = new List<XAxis>
+        // {
+        //     new XAxis
+        //     {
+        //         Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title
+        //         {
+        //             Text = "X"
+        //         }
+        //     }
+        // }
+    };
+
+    private async Task DeleteScatter()
+    {
+        await chart.DeleteTrace(0);
+    }
+    
+    private async Task CalcAndDraw(string xs, string ys, double a)
+    {
+        try
+        {
+            at = GraphService.GetAnalysisAsync(xs, ys, a).Result;
+        }
+        catch (AggregateException)
+        {
+            return;
+        }
+
+        await chart.AddTrace(new Scatter
+        {
+            Name = "Исходные данные",
+            Mode = ModeFlag.Markers,
+            X = at.Xs,
+            Y = at.Ys,
+            XAxis = "X",
+            YAxis = "Y"
+        });
+
+        await chart.AddTrace(new Scatter
+        {
+            Name = "Уравнение регрессии",
+            Mode = ModeFlag.Lines,
+            X = at.Xs,
+            Y = at.YsLin,
+            XAxis = "X",
+            YAxis = "Y"
+        });
+    }
+
+    private async Task Clear()
+    {
+        await chart.Clear();
+        at = null;
+        XsInput = null;
+        YsInput = null;
+        a = 0;
+    }
+}

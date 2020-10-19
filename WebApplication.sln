@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication", "WebApplication\WebApplication.csproj", "{F3654CFB-5296-406C-9C28-F1AC5CD39FB4}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Statistics", "Statistics\Statistics.fsproj", "{F3509A1D-4971-415D-8733-AE147CAAE91E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F3654CFB-5296-406C-9C28-F1AC5CD39FB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3654CFB-5296-406C-9C28-F1AC5CD39FB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3654CFB-5296-406C-9C28-F1AC5CD39FB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3654CFB-5296-406C-9C28-F1AC5CD39FB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3509A1D-4971-415D-8733-AE147CAAE91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3509A1D-4971-415D-8733-AE147CAAE91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3509A1D-4971-415D-8733-AE147CAAE91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3509A1D-4971-415D-8733-AE147CAAE91E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
