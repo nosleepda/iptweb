@@ -1,4 +1,4 @@
-﻿namespace Statistics
+﻿namespace MathStatistics
 
 open System
 open System.Collections.Generic
@@ -73,16 +73,16 @@ type Analysis(xsArr: double[], ysArr: double[], alf: double) =
     
     member this.Sy = Math.Round(sy, 4)
     
-    member this.Cr = Math.Round(r, 4)
+    member this.Correlation = Math.Round(r, 4)
     
-    member this.ConfidenceIntervalP =
-        let l = Math.Atanh r - (Utilities.NormalInv alf) / sqrt(n - 3.0) |> tanh
-        let r = Math.Atanh r + (Utilities.NormalInv alf) / sqrt(n - 3.0) |> tanh
+    member this.ConfidenceIntervalCorrelation =
+        let l = Math.Atanh r - (Utilities2.NormalInv alf) / sqrt(n - 3.0) |> tanh
+        let r = Math.Atanh r + (Utilities2.NormalInv alf) / sqrt(n - 3.0) |> tanh
         String.Format("Доверительный интервал коэффициента корреляции {0} < r < {1} ", Math.Round(l, 4), Math.Round(r, 4))
     
-    member this.SignificanceCr =
+    member this.SignificanceCorrelation =
         let l = abs r / sqrt (1.0 - r ** 2.0) * sqrt n2
-        let r = Utilities.Student n2 alf
+        let r = Utilities2.Student n2 alf
         let bool = if l > r then "" else "не"
         let bool2 = if l > r then ">" else "<"
         String.Format("X и Y {0} зависимы, \nт.к. {1} {2} {3} ", bool, Math.Round(l, 4), bool2, Math.Round(r, 4))
@@ -93,13 +93,13 @@ type Analysis(xsArr: double[], ysArr: double[], alf: double) =
     member this.EquationXY =
         String.Format("x = {0} + {1} * y", Math.Round(ca1, 4), Math.Round(cb1, 4))
     
-    member this.R2 =
+    member this.Determination =
         let temp = List.map2 (fun x y -> (y - f x) ** 2.0) xs ys |> List.sum
         let r2 = List.map (fun y -> (y - my) ** 2.0) ys |> List.sum |> (/) temp |> (-) 1.0
         Math.Round(r2, 4)
     
-    member this.SignificanceFisherSnedecor =
-        let l = this.R2 * n2 / (1.0 - this.R2)
+    member this.Adequacy =
+        let l = this.Determination * n2 / (1.0 - this.Determination)
         let r = FisherSnedecor.InvCDF(1.0,n2,1.0 - alf)
         let bool = if l > r then "" else "не"
         let bool2 = if l > r then ">" else "<"
@@ -107,16 +107,16 @@ type Analysis(xsArr: double[], ysArr: double[], alf: double) =
     
     member this.confidenceIntervalB =
         let Sb = S / (this.Sx * sqrt n1)
-        let l = cb - Utilities.Student n2 0.05 * Sb
-        let r =  cb + Utilities.Student n2 0.05 * Sb
+        let l = cb - Utilities2.Student n2 0.05 * Sb
+        let r =  cb + Utilities2.Student n2 0.05 * Sb
         String.Format("Доверительный интервал {0} < b < {1} ", Math.Round(l, 4),  Math.Round(r, 4))
     
     member this.confidenceIntervalA =
         let Sa = S * sqrt (1.0 / n + this.MeanX ** 2.0 / (n1 * this.Sx ** 2.0))
-        let l = ca - Utilities.Student n2 0.05 * Sa
-        let r = ca + Utilities.Student n2 0.05 * Sa
+        let l = ca - Utilities2.Student n2 0.05 * Sa
+        let r = ca + Utilities2.Student n2 0.05 * Sa
         String.Format("Доверительный интервал {0} < a < {1} ", Math.Round(l, 4), Math.Round(r, 4))
     
-    member this.K =
+    member this.Elasticity =
         Math.Round(cb * mx / my, 4)
     

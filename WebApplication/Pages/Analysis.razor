@@ -2,7 +2,8 @@
 
 @using Plotly.Blazor.Traces.ScatterLib
 @using WebApplication.Data
-@inject GraphService GraphService
+
+@inject AnalysisService AnalysisService
 
 <p>
     <input @bind="XsInput" /> 
@@ -17,31 +18,31 @@
     <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
                  @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
     
-    @if (at == null)
+    @if (analysis == null)
     {
-    	<div>Loading...</div>
+    	<div></div>
     }
-    else if (at == null && IsClicked)
+    else if (analysis == null && IsClicked)
     {
-        <div>Loading2...</div>
+        <div>Loading...</div>
     }
     else
     {
         <div class="">
-            <p>Среднее значение Х: @at.MeanX</p>
-            <p>Среднее значение Y: @at.MeanY</p>
-            <p>Значение Sx: @at.Sx</p>
-            <p>Значение Sy: @at.Sy</p>
-            <p>Коэффициент корреляции: @at.Cr</p>
-            <p>Значимость: @at.SignificanceCr</p>
-            <p>@at.ConfidenceIntervalP</p>
-            <p>Эмпирическое уравнение регрессии Y на X: @at.EquationYX</p>
-            <p>Эмпирическое уравнение регрессии X на Y: @at.EquationXY</p>
-            <p>@at.confidenceIntervalA</p>
-            <p>@at.confidenceIntervalB</p>
-            <p>Коэффициент детерминации: @at.R2</p>
-            <p>@at.SignificanceFisherSnedecor</p>
-            <p>Коэффициент эластичности: @at.K</p>
+            <p>Среднее значение Х: @analysis.MeanX</p>
+            <p>Среднее значение Y: @analysis.MeanY</p>
+            <p>Значение Sx: @analysis.Sx</p>
+            <p>Значение Sy: @analysis.Sy</p>
+            <p>Коэффициент корреляции: @analysis.Correlation</p>
+            <p>Значимость: @analysis.SignificanceCorrelation</p>
+            <p>@analysis.ConfidenceIntervalCorrelation</p>
+            <p>Эмпирическое уравнение регрессии Y на X: @analysis.EquationYX</p>
+            <p>Эмпирическое уравнение регрессии X на Y: @analysis.EquationXY</p>
+            <p>@analysis.confidenceIntervalA</p>
+            <p>@analysis.confidenceIntervalB</p>
+            <p>Коэффициент детерминации: @analysis.Determination</p>
+            <p>@analysis.Adequacy</p>
+            <p>Коэффициент эластичности: @analysis.Elasticity</p>
         </div>
     }
 </div>
@@ -50,10 +51,10 @@
 {
     private string XsInput;
     private string YsInput;
-    private double a;
+    private double a = 0.05;
     private bool IsClicked;
 
-    private Statistics.Analysis at;
+    private MathStatistics.Analysis analysis;
     
     PlotlyChart chart;
 
@@ -64,30 +65,30 @@
 
     Layout layout = new Layout
     {
-        // // Title = new Title
-        // // {
-        // //     Text = "Scatter"
-        // // },
-        // YAxis = new List<YAxis>
-        // {
-        //     new YAxis
-        //     {
-        //         Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title
-        //         {
-        //             Text = "Y"
-        //         }
-        //     }
-        // },
-        // XAxis = new List<XAxis>
-        // {
-        //     new XAxis
-        //     {
-        //         Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title
-        //         {
-        //             Text = "X"
-        //         }
-        //     }
-        // }
+    // // Title = new Title
+    // // {
+    // //     Text = "Scatter"
+    // // },
+    // YAxis = new List<YAxis>
+    // {
+    //     new YAxis
+    //     {
+    //         Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title
+    //         {
+    //             Text = "Y"
+    //         }
+    //     }
+    // },
+    // XAxis = new List<XAxis>
+    // {
+    //     new XAxis
+    //     {
+    //         Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title
+    //         {
+    //             Text = "X"
+    //         }
+    //     }
+    // }
     };
 
     private async Task DeleteScatter()
@@ -99,7 +100,7 @@
     {
         try
         {
-            at = GraphService.GetAnalysisAsync(xs, ys, a).Result;
+            analysis = AnalysisService.GetAnalysisAsync(xs, ys, a).Result;
         }
         catch (AggregateException)
         {
@@ -110,8 +111,8 @@
         {
             Name = "Исходные данные",
             Mode = ModeFlag.Markers,
-            X = at.Xs,
-            Y = at.Ys,
+            X = analysis.Xs,
+            Y = analysis.Ys,
             XAxis = "X",
             YAxis = "Y"
         });
@@ -120,8 +121,8 @@
         {
             Name = "Уравнение регрессии",
             Mode = ModeFlag.Lines,
-            X = at.Xs,
-            Y = at.YsLin,
+            X = analysis.Xs,
+            Y = analysis.YsLin,
             XAxis = "X",
             YAxis = "Y"
         });
@@ -130,7 +131,7 @@
     private async Task Clear()
     {
         await chart.Clear();
-        at = null;
+        analysis = null;
         XsInput = null;
         YsInput = null;
         a = 0;

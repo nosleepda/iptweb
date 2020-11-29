@@ -1,4 +1,4 @@
-﻿namespace Statistics
+﻿namespace MathStatistics
 
 open System.Collections.Generic
 
@@ -36,6 +36,8 @@ type StatisticsData(sourceData: double[]) =
     
     member this.Discrete =
         List.map2 (fun s e -> (s + e) / 2.0) (List.take (this.Interval.Length - 1) this.Interval) this.Interval.Tail
+        
+    member this.DiscreteObj = this.Discrete |> Seq.cast<obj> |> List 
     
     member this.FrequenciesInterval =
         let mutable data = List<double> sortedData
@@ -51,6 +53,8 @@ type StatisticsData(sourceData: double[]) =
     
     member this.FrequenciesDiscrete =
         this.FrequenciesInterval.GetRange(1, this.FrequenciesInterval.Count - 1)
+        
+    member this.FrequenciesDiscreteObj = this.FrequenciesDiscrete |> Seq.cast<obj> |> List 
     
     member this.DictData =
         Seq.map2 (fun d f -> d, f) this.Discrete this.FrequenciesDiscrete

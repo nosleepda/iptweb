@@ -6,11 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Utilities2.fs" />
         <Compile Include="Utilities.fs" />
         <Compile Include="StatisticsData.fs" />
         <Compile Include="DescriptiveStatistics.fs" />
         <Compile Include="Hypothesis.fs" />
         <Compile Include="Analysis.fs" />
+        <Compile Include="Models\Analysis.fs" />
+        <Compile Include="AnalysisTable.fs" />
+        <Compile Include="NonlinearDependencies.fs" />
+        <Compile Include="NonlinearDependenciesTable.fs" />
+        <Compile Include="MultipleRegression.fs" />
+        <Compile Include="RankCorrelation.fs" />
     </ItemGroup>
 
     <ItemGroup>
