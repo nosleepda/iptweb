@@ -181,3 +181,8 @@ app {
         display: block;
     }
 }
+
+.gridBox {
+    display: grid;
+    grid-template-columns: 200px 200px;
+}

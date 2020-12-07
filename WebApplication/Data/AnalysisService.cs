@@ -38,9 +38,9 @@ namespace WebApplication.Data
             return Task.FromResult(s);
         }
         
-        public Task<AnalysisTable> GetAnalysisTableAsync(string xs, string ys, string ns, double a)
+        public Task<AnalysisTable> GetAnalysisTableAsync(string xs, string ys, string[,] ns, double a)
         {
-            if (string.IsNullOrEmpty(xs) || string.IsNullOrEmpty(ys) || string.IsNullOrEmpty(ns))
+            if (string.IsNullOrEmpty(xs) || string.IsNullOrEmpty(ys) || ns.Length == 0)
             {
                 return Task.FromException<AnalysisTable>(new ArgumentNullException());
             }
@@ -54,9 +54,23 @@ namespace WebApplication.Data
             var yString = ys.Replace(" ", "").Split(";");
             var x = Array.ConvertAll(xString, StringToDouble);
             var y = Array.ConvertAll(yString, StringToDouble);
-            var ns2 = new double[x.Length,y.Length];
-            var s = new AnalysisTable(x, y, ns2, a);
+            var nsDouble = ConvertAll(ns, StringToDouble);
+            var s = new AnalysisTable(x, y, nsDouble, a);
             return Task.FromResult(s);
+        }
+
+        private static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] data, Converter<TInput, TOutput> converter)
+        {
+            var output = new TOutput[data.GetLength(0), data.GetLength(1)];
+            for (var i = 0; i < data.GetLength(0); i++)
+            {
+                for (var j = 0; j < data.GetLength(1); j++)
+                {
+                    output[i,j] = converter(data[i,j]);
+                }
+            }
+
+            return output;
         }
 
         private static object StringToObject(string x)

@@ -1,0 +1,151 @@
+﻿@page "/analysisTable"
+@using WebApplication.Data
+
+@inject AnalysisService AnalysisService
+
+<h3>AnalysisTable</h3>
+
+@* <ul class="gridBox"> *@
+@*     @for (var x = 1; x < 6; x++) *@
+@*     { *@
+@*         <li style="list-style: none;"> *@
+@*             <input @bind="size1" /> *@
+@*         </li> *@
+@*     } *@
+@* </ul> *@
+@* *@
+@* @code { *@
+@*     private int size1; *@
+@* } *@
+
+<p>
+	<input type="number" @bind="size1" />
+	<input type="number" @bind="size2" />
+	<input @bind="XsInput" />
+	<input @bind="YsInput" />
+	<input type="number" @bind="a" />
+</p>
+
+<div>
+	<button type="button" class="btn btn-primary" @onclick="Magic">
+		Contunie
+	</button>
+</div>
+
+@if (clicked)
+{
+@* 	<ul class="gridBox">  *@
+@* 		@for (var i = 0; i < size1; i++) *@
+@* 		{ *@
+@* 			// see https://stackoverflow.com/a/56426146/323447 *@
+@* 			var iCopy = i; *@
+@* *@
+@* 			for (var j = 0; j < size2; j++) *@
+@* 			{ *@
+@* 				var jCopy = j; *@
+@* 				 *@
+@* $1$ 					<label for="@($"ns{i}{j}")">@i</label> #1# *@
+@* 					<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]" *@
+@* 					       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/> *@
+@* 			} *@
+@* *@
+@* 		} *@
+@* 	</ul> *@
+
+	<table class="table">
+		@* <thead> *@
+		@* <tr> *@
+		@* 	<th>Remove</th> *@
+		@* 	<th>Date</th> *@
+		@* 	<th>Description</th> *@
+		@* 	<th>Is Complete</th> *@
+		@* </tr> *@
+		@* </thead> *@
+		<tbody>
+		@for (var i = 0; i < size1; i++)
+		{
+			// see https://stackoverflow.com/a/56426146/323447
+			var iCopy = i;
+			<tr>
+				@for (var j = 0; j < size2; j++)
+				{
+					var jCopy = j;
+
+					<td>
+						<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]"
+						       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/>
+					</td>
+        @* 					<label for="@($"ns{i}{j}")">@i</label> *@
+@*         					<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]" *@
+@*         					       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/> *@
+				}
+			</tr>
+		}
+		</tbody>
+	</table>
+}
+
+<div>
+	@* <button type="button" class="btn btn-primary" @onclick="Magic2"> *@
+	@* 	Click *@
+	@* </button> *@
+	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, ns, a)">Draw</button>
+</div>
+
+<div>
+	 @if (analysis != null)
+        {
+	        <div>
+				<p>Среднее значение Х: @analysis.MeanX</p>
+	            <p>Среднее значение Y: @analysis.MeanY</p>
+	            <p>Значение Sx: @analysis.Sx</p>
+	            <p>Значение Sy: @analysis.Sy</p>
+	            <p>Коэффициент корреляции: @analysis.Correlation</p>
+	            <p>Значимость: @analysis.SignificanceCorrelation</p>
+	            <p>@analysis.ConfidenceIntervalCorrelation</p>
+		        <p>Эмпирическое уравнение регрессии Y на X: @analysis.EquationYX</p>
+			    <p>@analysis.confidenceIntervalA</p>
+	            <p>@analysis.confidenceIntervalB</p>
+	            <p>Коэффициент детерминации: @analysis.Determination</p>
+	            <p>@analysis.Adequacy</p>
+	        </div>
+        }
+</div>
+
+@code {
+	
+	private string XsInput;
+	private string YsInput;
+	private double a = 0.05;
+	private string[,] ns = {{"0", "0", "0", "1", "4"}, {"0", "3", "6", "4", "1"}, {"1", "3", "2", "0", "1"}, {"3", "0", "1", "0", "0"}};
+	private int size1 = 4;
+	private int size2 = 5;
+	private List<string> effects = new List<string>() { "a", "b", "c" };
+	private bool clicked = false;
+	private bool clicked2 = false;
+	private MathStatistics.AnalysisTable analysis;
+	private void Magic()
+	{
+		clicked = true;
+		// ns = new string[size1,size2];
+	}
+	
+	private void Magic2()
+	{
+		clicked2 = true;
+	}
+
+	private async Task CalcAndDraw(string xs, string ys, string[,] ns, double a)
+	{
+		try
+		{
+			analysis = await AnalysisService.GetAnalysisTableAsync(xs, ys, ns, a);
+			
+		}
+		catch (AggregateException)
+		{
+			throw;
+		}
+	}
+
+}

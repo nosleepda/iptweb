@@ -6,13 +6,15 @@
 @inject AnalysisService AnalysisService
 
 <p>
-    <input @bind="XsInput" /> 
-    <input @bind="YsInput" /> 
-    <input type="number" @bind="a" /> 
+    <input @bind="XsInput" />
+    <input @bind="YsInput" />
+    <input type="number" @bind="a" />
     <button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
     <button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
     <button type="button" class="btn btn-primary" @onclick="DeleteScatter">Pop</button>
 </p>
+
+
 
 <div class="" style="display: flex; justify-content: flex-start">
     <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
@@ -100,7 +102,7 @@
     {
         try
         {
-            analysis = AnalysisService.GetAnalysisAsync(xs, ys, a).Result;
+            analysis = await AnalysisService.GetAnalysisAsync(xs, ys, a);
         }
         catch (AggregateException)
         {
