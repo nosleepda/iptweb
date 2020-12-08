@@ -1,0 +1,109 @@
+﻿@page "/multipleRegression"
+
+@using Plotly.Blazor.Traces.ScatterLib
+@using WebApplication.Data
+
+@inject Service Service
+
+<p>
+    <input @bind="YsInput" />
+    <input @bind="Xs1Input"/>
+    <input @bind="Xs2Input"/>
+    <input @bind="Xs3Input"/>
+    <input type="number" @bind="a"/>
+    <button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(YsInput, Xs1Input, Xs2Input, Xs3Input, a)">Draw</button>
+</p>
+
+
+<div class="" style="display: flex; justify-content: flex-start">
+   <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+                        @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+    
+    @if (analysis == null)
+    {
+    	<div></div>
+    }
+    else if (analysis == null && IsClicked)
+    {
+        <div>Loading...</div>
+    }
+    else
+    {
+        <div class="">
+            <p>Эмпирическое уравнение регрессии: @analysis.RegressionFunction</p>
+            <p>Коэффициент корреляции: @analysis.Correlation</p>
+            <p>Коэффициент корреляции: @analysis.CorrelationCorrected</p>
+            <p>@analysis.SignificanceCorrelation</p>
+            <p>Коэффициент детерминации: @analysis.Determination</p>
+            <p>@analysis.Adequacy</p>
+            <p>Коэффициент эластичности: @analysis.Elasticity</p>
+            <p>Ошибка: @Math.Round(analysis.Error,4)</p>
+        </div>
+    }
+</div>
+
+@code
+{
+    private string Xs1Input;
+    private string Xs2Input;
+    private string Xs3Input;
+    private string YsInput;
+    private double a = 0.05;
+    private bool IsClicked;
+    private MathStatistics.MultipleRegression analysis;
+    PlotlyChart chart;
+
+    Config config = new Config
+    {
+        Responsive = true
+    };
+
+    Layout layout = new Layout();
+    
+    
+    private async Task CalcAndDraw(string ys, string xs1, string xs2, string xs3, double a)
+    {
+        IsClicked = true;
+        try
+        {
+            analysis = await Service.GetMultipleRegressionAsync(ys, xs1, xs2, xs3, a);
+        }
+        catch (AggregateException)
+        {
+            return;
+        }
+
+        await chart.AddTrace(new Scatter
+        {
+            Name = "X1",
+            Mode = ModeFlag.Markers,
+            X = analysis.Xs1,
+            Y = analysis.Ys,
+            // Marker = {Color = Color.DeepPink},
+            XAxis = "X",
+            YAxis = "Y"
+        });
+        
+        await chart.AddTrace(new Scatter
+        {
+            Name = "X2",
+            Mode = ModeFlag.Markers,
+            X = analysis.Xs2,
+            Y = analysis.Ys,
+            // Marker = {Color = Color.Red},
+            XAxis = "X",
+            YAxis = "Y"
+        });
+        
+        await chart.AddTrace(new Scatter
+        {
+            Name = "X3",
+            Mode = ModeFlag.Markers,
+            // Marker = {Color = Color.MidnightBlue},
+            X = analysis.Xs3,
+            Y = analysis.Ys,
+            XAxis = "X",
+            YAxis = "Y"
+        });
+    }
+}

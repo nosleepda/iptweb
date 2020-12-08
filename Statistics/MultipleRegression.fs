@@ -162,7 +162,7 @@ type MultipleRegression(ysArr: double[], xs1Arr: double[], xs2Arr: double[], xs3
     member this.RegressionFunction =
         let index1 = includedFactors.[0] + 1
         let index2 = includedFactors.[1] + 1
-        String.Format("y = x{0} * {1} + x{2} * {3} + {4}", index1, coef.[0], index2, coef.[1], coef.[2])
+        String.Format("y = x{0} * {1:0.####} + x{2} * {3:0.####} + {4:0.####}", index1, coef.[0], index2, coef.[1], coef.[2])
     
     member this.Correlation = Math.Round(Ryxx, 4)
         
@@ -173,16 +173,16 @@ type MultipleRegression(ysArr: double[], xs1Arr: double[], xs2Arr: double[], xs3
         let r = Utilities2.Student2 (n - 3.0) alf
         let bool = if l > r then "" else "не "
         let bool2 = if l > r then ">" else "<"
-        String.Format("Множественный коэффициент корреляции {0}значим, \nт.к. {1} {2} {3} ", bool, l, bool2, r)
+        String.Format("Множественный коэффициент корреляции {0}значим, \nт.к. {1:0.####} {2} {3:0.####} ", bool, l, bool2, r)
     
-    member this.Determination = Ryxx ** 2.0
+    member this.Determination = Math.Round(Ryxx ** 2.0, 4)
     
     member this.Adequacy =
        let l = (n - 3.0) * Ryxx ** 2.0 / (2.0 - 2.0 * Ryxx ** 2.0)
        let r = Utilities2.Fisher 2.0 (n - 3.0) alf
        let bool = if l > r then "" else "не "
        let bool2 = if l > r then ">" else "<"
-       String.Format("Эмпирические данные статистически {0}значимы, \nт.к. {1} {2} {3} ", bool, l, bool2, r)
+       String.Format("Эмпирические данные статистически {0}значимы, \nт.к. {1:0.####} {2} {3:0.####} ", bool, l, bool2, r)
     
     member this.Error =
         (factors.[includedFactors.[0]], factors.[includedFactors.[1]])
@@ -192,9 +192,11 @@ type MultipleRegression(ysArr: double[], xs1Arr: double[], xs2Arr: double[], xs3
         |> (*) (1.0 / n)
     
     member this.Elasticity =
+        let index1 = includedFactors.[0] + 1
+        let index2 = includedFactors.[1] + 1
         let k1 = coef.[0] * mxs.[includedFactors.[0]] / my
         let k2 = coef.[1] * mxs.[includedFactors.[1]] / my
-        [k1; k2]
+        String.Format("X{0} = {1:0.####}  X{2} = {3:0.####}", index1, k1, index2, k2)
     
     member this.Xs1 = xs1 |> Seq.cast<obj> |> List
     

@@ -257,16 +257,16 @@ type NonlinearDependenciesTable(xs: double[], ys: double[], ns: double[,], alf: 
     
     member this.Sy = Math.Round(sy, 4)
     
-    member this.CorrelationRatio = sqrt ((wysmy2 / n) / (pymy2 / n))
+    member this.CorrelationRatio = Math.Round(sqrt ((wysmy2 / n) / (pymy2 / n)), 4)
     
     member this.RegressionFunction =
         match numberOfFunc with
-        | 0 -> printfn "y = %f * x ^ %f" coeffAB.[0] coeffAB.[1]
-        | 1 -> printfn "y = %f * %f ^ x" coeffAB.[0] coeffAB.[1]
-        | 2 -> printfn "y = 1 / (%f + %f * x)" coeffAB.[0] coeffAB.[1]
-        | 3 -> printfn "y = %f + %f * lgx" coeffAB.[0] coeffAB.[1]
-        | 4 -> printfn "y = %f + %f / x" coeffAB.[0] coeffAB.[1]
-        | 5 -> printfn "y = %f * x / (%f + x)" coeffAB.[0] coeffAB.[1]
+        | 0 -> String.Format("y = {0:0.####} * x ^ {1:0.####}", coeffAB.[0], coeffAB.[1])
+        | 1 -> String.Format("y = {0:0.####} * {1:0.####} ^ x", coeffAB.[0], coeffAB.[1])
+        | 2 -> String.Format("y = 1 / ({0:0.####} + {1:0.####} * x)", coeffAB.[0], coeffAB.[1])
+        | 3 -> String.Format("y = {0:0.####} + {1:0.####} * lgx", coeffAB.[0], coeffAB.[1])
+        | 4 -> String.Format("y = {0:0.####} + {1:0.####} / x", coeffAB.[0], coeffAB.[1])
+        | 5 -> String.Format("y = {0:0.####} * x / ({1:0.####} + x)", coeffAB.[0], coeffAB.[1])
         | _ -> failwith "Illegal number of regression functions"
     
     member this.Determination =
@@ -279,11 +279,11 @@ type NonlinearDependenciesTable(xs: double[], ys: double[], ns: double[,], alf: 
             |> List.map2 (fun elem2 elem1 -> (elem1 - my) ** 2.0 * elem2) ws
             |> List.sum
             
-        r2 / r1
+        Math.Round(r2 / r1, 4)
     
     member this.Adequacy =
-        let l = s2 / s1
-        let r = Utilities2.Fisher 1.0 (n - 2.0) alf
+        let l = Math.Round(s2 / s1, 4)
+        let r = Math.Round(Utilities2.Fisher 1.0 (n - 2.0) alf, 4)
         let bool = if l < r then "" else "не "
         let bool2 = if l < r then "<" else ">"
         String.Format("Уравнение регрессии статистически {0}значимо, \nт.к. {1} {2} {3}", bool, l, bool2, r )

@@ -3,7 +3,7 @@
 @using Plotly.Blazor.Traces.ScatterLib
 @using WebApplication.Data
 
-@inject AnalysisService AnalysisService
+@inject Service Service
 
 <p>
     <input @bind="XsInput" />
@@ -17,8 +17,8 @@
 
 
 <div class="" style="display: flex; justify-content: flex-start">
-    <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
-                 @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+           <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+                        @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
     
     @if (analysis == null)
     {
@@ -100,9 +100,10 @@
     
     private async Task CalcAndDraw(string xs, string ys, double a)
     {
+        IsClicked = true;
         try
         {
-            analysis = await AnalysisService.GetAnalysisAsync(xs, ys, a);
+            analysis = await Service.GetAnalysisAsync(xs, ys, a);
         }
         catch (AggregateException)
         {

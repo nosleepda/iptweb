@@ -4,13 +4,13 @@
 @using Plotly.Blazor.Traces.ScatterLib.LineLib
 @using WebApplication.Data
 
-@inject StatisticsService StatisticsService
+@inject Service Service
 
 <h3>Statistics</h3>
 
 <p>
-	<input @bind="DataInput" />
-	<input type="number" @bind="a" /> 
+	<input @bind="DataInput"/>
+	<input type="number" @bind="a"/>
 	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(DataInput, a)">Draw</button>
 	<button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
 </p>
@@ -18,7 +18,7 @@
 <div class="" style="display: flex; justify-content: flex-start">
 	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
 	             @bind-Config="config" @bind-Layout="layout" @ref="_histogram"/>
-	
+
 	@if (_statistic == null)
 	{
 		<div>Loading...</div>
@@ -57,9 +57,10 @@
 	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
 	             @bind-Config="config" @bind-Layout="layout" @ref="_distributionFunction"/>
 </div>
-
-<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+<div class="" style="display: flex; justify-content: flex-start">
+	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
 	             @bind-Config="config" @bind-Layout="layout" @ref="_diffFreqExt"/>
+</div>
 
 @code {
 	private string DataInput;
@@ -69,7 +70,7 @@
 	private PlotlyChart _distributionFunction;
 	private PlotlyChart _diffFreqExt;
 	private MathStatistics.Hypothesis _statistic;
-	
+
 	Config config = new Config
 	{
 		Responsive = true
@@ -102,12 +103,13 @@
 	//     }
 	// }
 	};
-	
+
 	private async Task CalcAndDraw(string data, double a)
 	{
+		IsClicked = true;
 		try
 		{
-			_statistic = StatisticsService.GetStatisticsAsync(data, a).Result;
+			_statistic = await Service.GetStatisticsAsync(data, a);
 		}
 		catch (AggregateException)
 		{
@@ -120,7 +122,7 @@
 			Mode = ModeFlag.Lines,
 			X = _statistic.Data.DiscreteObj,
 			Y = _statistic.Data.FrequenciesDiscreteObj,
-			Line = new Line{Shape = ShapeEnum.Spline, Smoothing = 1}
+			Line = new Line {Shape = ShapeEnum.Spline, Smoothing = 1}
 		});
 
 		await _histogram.AddTrace(new Bar
@@ -129,13 +131,13 @@
 			X = _statistic.Data.DiscreteObj,
 			Y = _statistic.Data.FrequenciesDiscreteObj,
 		});
-		
+
 		await _distributionFunction.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
 			Mode = ModeFlag.Lines,
 			Y = _statistic.CumulateObj,
-			Line = new Line{Shape = ShapeEnum.Spline, Smoothing = 1}
+			Line = new Line {Shape = ShapeEnum.Spline, Smoothing = 1}
 		});
 
 		await _distributionFunction.AddTrace(new Bar
@@ -143,24 +145,24 @@
 			Name = "Уравнение регрессии",
 			Y = _statistic.CumulateObj
 		});
-		
+
 		await _diffFreqExt.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
 			Mode = ModeFlag.Lines,
 			Y = _statistic.Data.FrequenciesDiscreteObj,
-			Line = new Line{Shape = ShapeEnum.Spline, Smoothing = 1}
+			Line = new Line {Shape = ShapeEnum.Spline, Smoothing = 1}
 		});
-		
+
 		await _diffFreqExt.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
 			Mode = ModeFlag.Lines,
 			Y = _statistic.FrequenciesDiscreteExpObj,
-			Line = new Line{Shape = ShapeEnum.Spline, Smoothing = 1}
+			Line = new Line {Shape = ShapeEnum.Spline, Smoothing = 1}
 		});
 	}
-	
+
 	private async Task Clear()
 	{
 		await _histogram.Clear();
@@ -168,4 +170,5 @@
 		DataInput = null;
 		a = 0;
 	}
+
 }

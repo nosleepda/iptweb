@@ -1,0 +1,67 @@
+﻿@page "/rankCorrelation"
+@using WebApplication.Data
+
+@inject Service Service
+
+<p>
+    <input @bind="XsInput" />
+    <input @bind="YsInput" />
+    <input type="number" @bind="a" />
+    <button type="button" class="btn btn-primary" @onclick="async () => await CalcAndDraw(XsInput, YsInput, a)">Draw</button>
+    <button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
+</p>
+
+<div class="" style="display: flex; justify-content: flex-start">
+
+    @if (analysis == null)
+    {
+    	<div></div>
+    }
+    else if (analysis == null && IsClicked)
+    {
+        <div>Loading...</div>
+    }
+    else
+    {
+        <div class="">
+            <p>Спирмен:</p>
+            <p>Коэффициент корреляции: @analysis.CorrelationSpearman</p>
+            <p>Значимость: @analysis.SignificanceCorrelationSpearman</p>
+            <p>Кендалл:</p>
+            <p>Коэффициент корреляции: @analysis.CorrelationKendall</p>
+            <p>Значимость: @analysis.SignificanceCorrelationKendall</p>
+        </div>
+    }
+</div>
+
+@code
+{
+    private string XsInput = "96.0; 60.0; 74.0; 88.0; 99.0; 79.0; 72.0; 49.0; 83.0; 47.0; 93.0; 72.0; 98.0";
+    private string YsInput = "46.0; 76.0; 53.0; 98.0; 61.0; 78.0; 49.0; 72.0; 53.0; 53.0; 52.0; 89.0; 69.0";
+    private double a = 0.05;
+    private bool IsClicked;
+
+    private MathStatistics.RankCorrelation analysis;
+
+    private async Task CalcAndDraw(string xs, string ys, double a)
+    {
+        try
+        {
+            analysis = await Service.GetRankCorrelationAsync(xs, ys, a);
+        }
+        catch (AggregateException)
+        {
+            return;
+        }
+        
+        IsClicked = true;
+    }
+
+    private void Clear()
+    {
+        analysis = null;
+        XsInput = null;
+        YsInput = null;
+        a = 0;
+    }
+}

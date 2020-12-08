@@ -28,8 +28,7 @@ namespace WebApplication
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<AnalysisService>();
-            services.AddSingleton<StatisticsService>();
+            services.AddSingleton<Service>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

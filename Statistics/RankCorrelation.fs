@@ -23,6 +23,7 @@ type RankCorrelation(ysArr: double[], xsArr: double[], alf: double) =
                 |> Seq.map (fun (KeyValue(k,v)) -> v)
                 |> List.ofSeq
         tmp2
+        |> List.sort //vot eto neponyatno 
    
 
     let yIndexed = ys |> List.mapi (fun i y -> (i + 1, y)) |> dict
@@ -63,7 +64,7 @@ type RankCorrelation(ysArr: double[], xsArr: double[], alf: double) =
         let r = sqrt ((1.0 - correlationSpearman ** 2.0) / (n - 2.0)) * Utilities2.Student2 (n - 2.0) alf
         let bool = if l > r then "" else "не "
         let bool2 = if l > r then ">" else "<"
-        String.Format("Ранговая корреляционная связь {0}значима, \nт.к. {1} {2} {3} ", bool, l, bool2, r)
+        String.Format("Ранговая корреляционная связь {0}значима, \nт.к. {1} {2} {3} ", bool, Math.Round(l, 4), bool2, Math.Round(r, 4))
     
     member this.CorrelationKendall = Math.Round(correlationKendall, 4)
     
@@ -73,4 +74,4 @@ type RankCorrelation(ysArr: double[], xsArr: double[], alf: double) =
         let r =  z * sqrt ((2.0 * (2.0 * n + 5.0)) / ( 9.0 * n * (n - 1.0)))
         let bool = if l > r then "" else "не "
         let bool2 = if l > r then ">" else "<"
-        String.Format("Ранговая корреляционная связь {0}значима, \nт.к. {1} {2} {3} ", bool, l, bool2, r)
+        String.Format("Ранговая корреляционная связь {0}значима, \nт.к. {1} {2} {3} ", bool, Math.Round(l, 4), bool2, Math.Round(r, 4))

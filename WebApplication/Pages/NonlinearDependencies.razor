@@ -1,0 +1,135 @@
+﻿@page "/nonlinearDependencies"
+
+@using Plotly.Blazor.Traces.ScatterLib
+@using WebApplication.Data
+
+@inject Service Service
+
+<h3>Nonlinear Dependencies</h3>
+
+<p>
+	<input @bind="XsInput"/>
+	<input @bind="YsInput"/>
+	<input type="number" @bind="a"/>
+	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
+	<button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
+	<button type="button" class="btn btn-primary" @onclick="DeleteScatter">Pop</button>
+</p>
+
+<div class="" style="display: flex; justify-content: flex-start">
+	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+	             @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+	@if (analysis == null)
+	{
+		<div></div>
+	}
+	else if (analysis == null && IsClicked)
+	{
+		<div>Loading...</div>
+	}
+	else
+	{
+		<div class="">
+			<p>Среднее значение Х: @analysis.MeanX</p>
+			<p>Среднее значение Y: @analysis.MeanY</p>
+			<p>Значение Sx: @analysis.Sx</p>
+			<p>Значение Sy: @analysis.Sy</p>
+			<p>Коэффициент корреляции: @analysis.CorrelationIndex</p>
+			<p>Эмпирическое уравнение регрессии: @analysis.RegressionFunction</p>
+			<p>Коэффициент детерминации: @analysis.Determination</p>
+			<p>@analysis.Adequacy</p>
+		</div>
+	}
+</div>
+
+<div class="" style="display: flex; justify-content: flex-start">
+	<PlotlyChart style="height: 80vh; min-height: 350px; min-width: 100vh; width: 90%"
+	             @bind-Config="config" @bind-Layout="layout" @ref="chart2"/>
+</div>
+
+@code
+{
+	private string XsInput;
+	private string YsInput;
+	private double a = 0.05;
+	private bool IsClicked;
+
+	private MathStatistics.NonlinearDependencies analysis;
+
+	PlotlyChart chart;
+	PlotlyChart chart2;
+
+	Config config = new Config
+	{
+		Responsive = true
+	};
+
+	Layout layout = new Layout();
+
+	private async Task DeleteScatter()
+	{
+		await chart.DeleteTrace(0);
+	}
+
+	private async Task CalcAndDraw(string xs, string ys, double a)
+	{
+		IsClicked = true;
+		try
+		{
+			analysis = await Service.GetNonlinearDependenciesAsync(xs, ys, a);
+		}
+		catch (AggregateException)
+		{
+			return;
+		}
+
+		await chart.AddTrace(new Scatter
+		{
+			Name = "Исходные данные",
+			// Mode = ModeFlag.Markers,
+			X = analysis.Xs,
+			Y = analysis.Ys,
+			XAxis = "X",
+			YAxis = "Y"
+		});
+
+		await chart.AddTrace(new Scatter
+		{
+			Name = "Уравнение регрессии",
+			Mode = ModeFlag.Markers,
+			X = analysis.Xfs,
+			Y = analysis.Yfs,
+			XAxis = "X",
+			YAxis = "Y"
+		});
+
+		await chart2.AddTrace(new Scatter
+		{
+			Name = "Исходные данные",
+			// Mode = ModeFlag.Markers,
+			X = analysis.Xs,
+			Y = analysis.Ys,
+			XAxis = "X",
+			YAxis = "Y"
+		});
+
+		await chart2.AddTrace(new Scatter
+		{
+			Name = "Уравнение регрессии",
+			// Mode = ModeFlag.Lines,
+			X = analysis.Xs,
+			Y = analysis.Fxs,
+			XAxis = "X",
+			YAxis = "Y"
+		});
+	}
+
+	private async Task Clear()
+	{
+		await chart.Clear();
+		analysis = null;
+		XsInput = null;
+		YsInput = null;
+		a = 0;
+	}
+}

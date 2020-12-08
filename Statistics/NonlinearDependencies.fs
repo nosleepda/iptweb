@@ -208,12 +208,12 @@ type NonlinearDependencies(xsArr: double[], ysArr: double[], alf: double) =
         
     member this.RegressionFunction =
         match numberOfFunc with
-        | 0 -> printfn "y = %f * x ^ %f" coeffAB.[0] coeffAB.[1]
-        | 1 -> printfn "y = %f * %f ^ x" coeffAB.[0] coeffAB.[1]
-        | 2 -> printfn "y = 1 / (%f + %f * x)" coeffAB.[0] coeffAB.[1]
-        | 3 -> printfn "y = %f + %f * lgx" coeffAB.[0] coeffAB.[1]
-        | 4 -> printfn "y = %f + %f / x" coeffAB.[0] coeffAB.[1]
-        | 5 -> printfn "y = %f * x / (%f + x)" coeffAB.[0] coeffAB.[1]
+        | 0 -> String.Format("y = {0:0.####} * x ^ {1:0.####}", coeffAB.[0], coeffAB.[1])
+        | 1 -> String.Format("y = {0:0.####} * {1:0.####} ^ x", coeffAB.[0], coeffAB.[1])
+        | 2 -> String.Format("y = 1 / ({0:0.####} + {1:0.####} * x)", coeffAB.[0], coeffAB.[1])
+        | 3 -> String.Format("y = {0:0.####} + {1:0.####} * lgx", coeffAB.[0], coeffAB.[1])
+        | 4 -> String.Format("y = {0:0.####} + {1:0.####} / x", coeffAB.[0], coeffAB.[1])
+        | 5 -> String.Format("y = {0:0.####} * x / ({1:0.####} + x)", coeffAB.[0], coeffAB.[1])
         | _ -> failwith "Illegal number of regression functions"
     
     member this.CorrelationIndex =
