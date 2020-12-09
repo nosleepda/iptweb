@@ -1,6 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Aglomera;
+using Aglomera.D3;
+using Aglomera.Linkage;
+using ExamplesUtil;
 using MathStatistics;
+using Newtonsoft.Json;
 
 namespace WebApplication.Data
 {
@@ -155,6 +162,22 @@ namespace WebApplication.Data
             
             var s = new RankCorrelation(x, y, alf: a);
             return Task.FromResult(s);
+        }
+        
+        public Task<string> GetClusterAnalysisAsync(IReadOnlyCollection<string[]> data)
+        {
+            if (data.Count == 0)
+            {
+                return Task.FromException<string>(new ArgumentNullException());
+            }
+
+            var instance = Utils.ClusterParse(data);
+            var linkage = new SingleLinkage<DataPoint>(new DataPoint(null, null));
+            var clusteringAlg = new AgglomerativeClusteringAlgorithm<DataPoint>(linkage);
+            var clustering = clusteringAlg.GetClustering(instance);
+            var clustersJson = clustering.GetDendrogramJson( true, Formatting.Indented);
+
+            return Task.FromResult(clustersJson);
         }
     }
 }

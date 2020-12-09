@@ -5,6 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Aglomera" Version="1.1.1" />
+      <PackageReference Include="Aglomera.D3" Version="1.1.0" />
       <PackageReference Include="Plotly.Blazor" Version="1.2.0" />
     </ItemGroup>
 

@@ -1,32 +1,4 @@
 ﻿/**
- * @file uiFunctions.js
- * 
- * Copyright (c) 2018 Pedro Sequeira (pedrodbs@gmail.com)
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
- * Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @version 1.0
- * @author  Pedro Sequeira (pedrodbs@gmail.com)
- * @updated 05/17/2018
- * @link    https://github.com/pedrodbs/DendrogramViewer
- *
- */
-
-
-// #region Json file loading
-
-/**
  * Reads the json dendrogram data from the given file.
  * @param   {Array}   files     The files retrieved from the input-file control. The first file is loaded.
  */
@@ -43,7 +15,6 @@ function loadFile(files) {
             // reads data and loads tree
             const clusterJsonObj = JSON.parse(event.target.result);
             window.readData(clusterJsonObj);
-            saveImage('innerSvg')
             return true;
         };
         reader.readAsText(file);
@@ -129,11 +100,11 @@ function initUI() {
  * Reads all dendrogram / clustering information from the given Json object.
  * @param {object}  clusterJsonObj  The Json object containing all the dendrogram / clustering information.
  */
-export function readData(clusterJsonObj) {
+function readData(clusterJsonObj) {
     if (window.isNull(clusterJsonObj)) {
 
         window.update();
-        return null;
+        return false;
     } else {
 
         // resets variables
@@ -199,7 +170,8 @@ export function readData(clusterJsonObj) {
 
         // updates visual elements
         update();
-        return document.getElementById('innerSvg');
+
+        return true;
     }
 }
 
@@ -525,7 +497,7 @@ function getColor(colorValue) {
 /**
  * Changes the color of the given D3 node and all of its children recursively.
  * @param {object}  node            The D3 node to be updated.
- * @param {string}  color           The color of the node in html hexadecimal format. 
+ * @param {string}  color           The color of the node in html hexadecimal format.
  * @param {boolean} changeColor     Whether to change all colors.
  */
 function updateNodeColor(node, color, changeColor) {

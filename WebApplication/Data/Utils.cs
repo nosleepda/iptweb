@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using ExamplesUtil;
 
 namespace WebApplication.Data
 {
@@ -22,5 +24,32 @@ namespace WebApplication.Data
 
             return output;
         }
+        
+        public static ISet<DataPoint> ClusterParse(IReadOnlyCollection<string[]> data)
+        {
+            var dataPoints = new HashSet<DataPoint>();
+
+            foreach (var row in data)
+            {
+                var list = new List<double>();
+                for (var i = 0; i < row.Length - 1; i++)
+                {
+                    var field = row[i];
+                    if (double.TryParse(field, out var val))
+                    {
+                        list.Add(val);
+                    }
+                }
+
+                if (list.Count > 0)
+                {
+                    dataPoints.Add(new DataPoint(row[^1], list.ToArray()));
+                }
+            }
+
+            return dataPoints;
+        }
+        
+        
     }
 }

@@ -1,16 +1,194 @@
 ﻿@page "/cluster"
+@using WebApplication.Data
 
-@inject IJSRuntime JS
+@inject IJSRuntime Js
+@inject Service Service
 
 <h3>ClusterAnalysis</h3>
-<p> <button @onclick="Magic">
-           Call Unmarshalled JS & Return Boolean
-       </button></p>
-@code {
 
-	private object svg;
+<p>
+	<input type="number" @bind="N"/>
+	<input type="number" @bind="M"/>
+</p>
+
+<div>
+	<button type="button" class="btn btn-primary" @onclick="Magic">
+		Contunie
+	</button>
+</div>
+
+@if (clicked)
+{
+	<table class="table">
+		@* <thead> *@
+		@* <tr> *@
+		@* 	<th>Remove</th> *@
+		@* 	<th>Date</th> *@
+		@* 	<th>Description</th> *@
+		@* 	<th>Is Complete</th> *@
+		@* </tr> *@
+		@* </thead> *@
+		<tbody>
+		@for (var i = 0; i < M; i++)
+		{
+			// see https://stackoverflow.com/a/56426146/323447
+			var iCopy = i;
+			<tr>
+				@for (var j = 0; j < N; j++)
+				{
+					var jCopy = j;
+
+					<td>
+						<input id="@($"data{i}{j}")" value="@data[i][j]"
+						       @onchange="@(e => data[iCopy][jCopy] = e.Value.ToString())"/>
+					</td>
+        @* 					<label for="@($"ns{i}{j}")">@i</label> *@
+@*         					<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]" *@
+@*         					       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/> *@
+				}
+			</tr>
+		}
+		</tbody>
+	</table>
+}
+<div>
+	<button type="button" class="btn btn-primary" @onclick="async () => await Calc(data)">Draw</button>
+	<button type="button" class="btn btn-primary" onclick="initUI()">Render</button>
+</div>
+
+<table id="ui-table">
+    <tr>
+        <td id="options-column">
+            
+            <!-- **** File options **** -->
+            <p class="options-title">Dendrogram:</p>
+            @* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
+            @* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
+            @* <input class="options-box" id="load-file-btn" type="button" value="Load..." onclick="document.getElementById('input-file').click();" /> *@
+            <button type="button" class="btn btn-primary" onclick="readData(@clusterJson)">Render</button>
+
+            <hr class="options-box" />
+
+            <!-- **** Visual options **** -->
+            <p class="options-title">Visual options:</p>
+            <div class="chkbox-box">
+                Show labels:
+                <div style="float: right">
+                    <input id="labels-chkbox" type="checkbox" unchecked onclick="onShowLabels()">
+                    <label for="labels-chkbox"></label>
+                </div>
+            </div>
+            <div class="chkbox-box">
+                Vertical layout:
+                <div style="float: right">
+                    <input id="vert-layout-chkbox" type="checkbox" checked onclick="onVertLayout()">
+                    <label for="vert-layout-chkbox"></label>
+                </div>
+            </div>
+            <div class="chkbox-box">
+                Straight links:
+                <div style="float: right">
+                    <input id="straight-chkbox" type="checkbox" checked onclick="onStraightLinks()">
+                    <label for="straight-chkbox"></label>
+                </div>
+            </div>
+            <div class="chkbox-box">
+                Grayscale:
+                <div style="float: right">
+                    <input id="grayscale-chkbox" type="checkbox" onclick="onGrayscale()">
+                    <label for="grayscale-chkbox"></label>
+                </div>
+            </div>
+            <div class="chkbox-box">
+                Background color:
+                <div style="float: right">
+                    <input id="color-picker" type="hidden" onchange="onColorSchemeChanged()" value="none">
+                    <input id="pick-color-btn" type="button" class="jscolor {valueElement: 'color-picker'}">
+                    <label for="pick-color-btn"></label>
+                </div>
+            </div>
+            <div class="options-box">
+                Color scheme:
+                <select id="color-scheme-select" class="options-select" onchange="onColorSchemeChanged();"></select>
+            </div>
+
+            <hr class="options-line"/>
+
+            <!-- **** Interaction options **** -->
+            <p class="options-title">Interaction options:</p>
+            <div class="chkbox-box">
+                Zoom & drag:
+                <div style="float: right">
+                    <input id="zoom-chkbox" type="checkbox" onclick="update()">
+                    <label for="zoom-chkbox"></label>
+                </div>
+            </div>
+            <input class="options-box" id="center-button" type="button" value="Reset view" onclick="onResetDragZoom()"/>
+
+            <hr class="options-line"/>
+
+            <!-- **** Dendrogram options **** -->
+            <p class="options-title">Dendrogram options:</p>
+            <div class="options-box">
+                Num. clusters:
+                <div class="options-box-value" id="num-clusters-slider-value">0</div>
+            </div>
+            <input class="options-box" id="num-clusters-slider" type="range"
+                   oninput="onNumClustersChanged(this.value)" onchange="onNumClustersChanged(this.value)"/>
+
+            <div class="options-box">
+                Dist. threshold:
+                <div class="options-box-value" id="threshold-slider-value">0</div>
+            </div>
+            <input class="options-box" id="threshold-slider" type="range"
+                   oninput="onThresholdChanged(this.value)" onchange="onThresholdChanged(this.value)"/>
+
+            <!-- **** Buttons **** -->
+            <hr class="options-line"/>
+            <input class="options-box" id="save-button" type="button" value="Download SVG" onclick="saveImage('innerSvg')"/>
+
+        </td>
+        <td id="container-column">
+            <div id="container"></div>
+        </td>
+    </tr>
+</table>
+
+@code {
+	private int N = 2;
+	private int M = 2;
+	private string[][] data;
+	private bool clicked;
+	private string clusterJson;
+	
 	private void Magic()
 	{
-
+		clicked = true;
+		InitArray();
 	}
+
+	private async Task Calc(IReadOnlyCollection<string[]> strings)
+	{
+		try
+		{
+			clusterJson = await Service.GetClusterAnalysisAsync(strings);
+		}
+		catch (AggregateException)
+		{
+			return;
+		}
+	}
+
+	private void InitArray()
+	{
+		data = new[] {new[] {"49850", "Лянгасово"}, new[] {"42361", "Егоршино"}};
+		// data = new string[N][];
+		// data[0] = new string[N];
+		// for (var index = 0; index < data.Length; index++)
+		// {
+		// 	data[index] = new string[M];
+		// }
+	}
+	
+	
 }
