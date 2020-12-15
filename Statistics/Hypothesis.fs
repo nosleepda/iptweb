@@ -4,13 +4,14 @@ open System
 open System.Collections.Generic
 
 type Hypothesis(sourceData: double[], alf: double) =
-    inherit DescriptiveStatistics(sourceData, alf)
+    
+    let statistics = DescriptiveStatistics(sourceData, alf)
     
     let frequenciesDiscreteShort =
         let result = List<int>()
         let mutable temp = 0
-        for i = 0 to base.Data.FrequenciesDiscrete.Count - 1 do
-            temp <- temp + base.Data.FrequenciesDiscrete.[i]
+        for i = 0 to statistics.Data.FrequenciesDiscrete.Count - 1 do
+            temp <- temp + statistics.Data.FrequenciesDiscrete.[i]
             if temp >= 5 then
                 result.Add temp
                 temp <- 0
@@ -19,13 +20,13 @@ type Hypothesis(sourceData: double[], alf: double) =
         List.ofSeq result
     
     let getMinValue =
-        base.Data.Discrete |> List.min |> (-) -(base.Data.H * 1000.0)
+        statistics.Data.Discrete |> List.min |> (-) -(statistics.Data.H * 1000.0)
     
-    let getMaxValue = base.Data.Discrete |> List.max |> (+) (base.Data.H * 1000.0)
+    let getMaxValue = statistics.Data.Discrete |> List.max |> (+) (statistics.Data.H * 1000.0)
     
     let intervalShort =
-        let interval = base.Data.Interval
-        let freq = base.Data.FrequenciesInterval
+        let interval = statistics.Data.Interval
+        let freq = statistics.Data.FrequenciesInterval
         let result = List<double>[getMinValue]
         let mutable temp = 0
         for i = 1 to freq.Count - 1 do
@@ -42,11 +43,11 @@ type Hypothesis(sourceData: double[], alf: double) =
         List.ofSeq result
     
     let frequenciesDiscreteExp =
-        let mean = base.Mean
-        let std = base.StandardDeviation
-        let us = List.map (fun elem -> (elem - mean) / std) base.Data.Discrete
+        let mean = statistics.Mean
+        let std = statistics.StandardDeviation
+        let us = List.map (fun elem -> (elem - mean) / std) statistics.Data.Discrete
         let value1 = 1.0 / sqrt (2.0 * Math.PI)
-        let value2 = base.Data.NDouble * base.Data.H / base.StandardDeviation
+        let value2 = statistics.Data.NDouble * statistics.Data.H / statistics.StandardDeviation
         
         let result = List.map (fun elem -> value1 * exp (elem ** 2.0 / -2.0)) us
                      |> List.map (fun elem -> value2 * elem)
@@ -57,10 +58,10 @@ type Hypothesis(sourceData: double[], alf: double) =
         List.ofSeq result
         
     let isShort =
-       List.ofSeq base.Data.FrequenciesDiscrete
+       List.ofSeq statistics.Data.FrequenciesDiscrete
        |> List.tryFind (fun x -> x < 5)
     
-    let frequenciesDiscreteDouble = List.ofSeq base.Data.FrequenciesDiscrete |> List.map (fun elem -> double elem)
+    let frequenciesDiscreteDouble = List.ofSeq statistics.Data.FrequenciesDiscrete |> List.map (fun elem -> double elem)
     
     let frequenciesDiscreteExpDouble =
         let r = List.map (fun elem -> double elem) frequenciesDiscreteExp
@@ -73,8 +74,8 @@ type Hypothesis(sourceData: double[], alf: double) =
     let freedomShort = (frequenciesDiscreteShort.Length - 2 - 1) |> double
     
     let ps =
-        let mean = base.Mean
-        let std = base.StandardDeviation
+        let mean = statistics.Mean
+        let std = statistics.StandardDeviation
         let p a b = abs ((Utilities.Normal mean std a) - (Utilities.Normal mean std b))
         let result = List<double>()
 
@@ -83,7 +84,7 @@ type Hypothesis(sourceData: double[], alf: double) =
         List.ofSeq result
         
     let chiSquaredShort =
-        let n = base.Data.NDouble
+        let n = statistics.Data.NDouble
         List.map (fun elem -> elem * n) ps
         |> List.map2 (fun elem1 elem2 -> (elem1 - elem2) ** 2.0 / elem2) frequenciesDiscreteShortDouble
         |> List.sum
@@ -115,10 +116,10 @@ type Hypothesis(sourceData: double[], alf: double) =
             |> List.sum
             |> (fun x -> 1.0 - x)
             
-        let c1 = cumulative (List.ofSeq base.Data.FrequenciesDiscrete)
+        let c1 = cumulative (List.ofSeq statistics.Data.FrequenciesDiscrete)
         let c2 = cumulative (List.ofSeq frequenciesDiscreteExp)
         let max = List.map2 (fun elem1 elem2 -> abs (elem1 - elem2)) c1 c2 |> List.max |> double
-        let k = max / sqrt base.Data.NDouble |> funcK
+        let k = max / sqrt statistics.Data.NDouble |> funcK
         let bool =
             if (k > alf) then "" else "не "
         let bool2 = if k > alf then ">" else "<="
@@ -135,7 +136,7 @@ type Hypothesis(sourceData: double[], alf: double) =
         String.Format("Условие критерия Романовского {0}выполняется {1} {2} 3 ", bool, r, bool2)
         
     member this.Yastremsky =
-        let n = base.Data.NDouble
+        let n = statistics.Data.NDouble
         let cs = List.map (fun elem -> elem * n) ps
                 |> List.map2 (fun elem1 elem2 -> (elem1 - elem2) ** 2.0 / (elem2 * (1.0 - elem2 / n))) frequenciesDiscreteShortDouble
                 |> List.sum
@@ -160,13 +161,13 @@ type Hypothesis(sourceData: double[], alf: double) =
         String.Format("Условие критерия Ястремского {0}выполняется {1} {2} 3 ", bool, j, bool2)
     
     member this.Approximate =
-        let n = base.Data.NDouble
+        let n = statistics.Data.NDouble
         let sas = sqrt (6.0 * (n - 1.0) / ((n + 1.0) * (n + 3.0)))
         let sex = sqrt ( 24.0 * n * (n - 2.0) * (n - 3.0) / (((n - 1.0) ** 2.0) * (n + 3.0) * n + 5.0))
-        let bool1 = (abs base.Skewness <= sas) && (abs base.Kurtosis <= sex) 
+        let bool1 = (abs statistics.Skewness <= sas) && (abs statistics.Kurtosis <= sex) 
         
         let chi =
-            base.Skewness ** 2.0 / sas ** 2.0 + base.Kurtosis ** 2.0 / sex ** 2.0
+            statistics.Skewness ** 2.0 / sas ** 2.0 + statistics.Kurtosis ** 2.0 / sex ** 2.0
         let chiCritical = Utilities.ChiSquared 2.0 alf
         
         let bool2 =

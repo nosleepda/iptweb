@@ -132,9 +132,6 @@ function readData(clusterJsonObj) {
         console.info(`Dissimilarity in [${window.dMin},${window.dMax}]`);
         console.info(`Num. cluster leafs: ${window.numClusterLeafs}`);
 
-        // changes title
-        document.title = `Clustering Dendrogram Visualizer - ${window.fileName}`;
-
         // changes sliders ranges
         document.getElementById("threshold-slider").min = window.dMin;
         document.getElementById("threshold-slider").max = window.dMax;
@@ -148,7 +145,7 @@ function readData(clusterJsonObj) {
         var zoomListener = d3.behavior.zoom()
             .scaleExtent([window.minZoom, Math.max(window.minZoom + 1, window.numClusterLeafs / window.maxZoomFactor)])
             .on("zoom", window.onZoom);
-        window.topSvg.call(zoomListener);
+        // window.topSvg.call(zoomListener);
 
         // sets link data
         window.svg.selectAll(".link")
@@ -250,8 +247,8 @@ function updatePageElements() {
     document.getElementById("container").style.height = window.height + "px";
 
     //updates d3 elements
-    window.topSvg.attr("width", window.width).attr("height", window.height);
-    window.svg.attr("width", window.width).attr("height", window.height);
+    window.topSvg.attr("width", window.width+100).attr("height", window.height);
+    window.svg.attr("width", window.width+100).attr("height", window.height);
     window.cluster.size(window.vertLayout
         ? [window.width - window.treeMargin, window.height]
         : [window.height - window.treeMargin, window.width]);

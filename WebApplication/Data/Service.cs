@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Aglomera;
-using Aglomera.D3;
 using Aglomera.Linkage;
 using ExamplesUtil;
 using MathStatistics;
@@ -13,7 +11,37 @@ namespace WebApplication.Data
 {
     public class Service
     {
-        public Task<Hypothesis> GetStatisticsAsync(string rawData, double a)
+        public Task<MathStatistics.DescriptiveStatistics> GetStatisticsAsync(string rawData, double a)
+        {
+            if (string.IsNullOrEmpty(rawData) )
+            {
+                return Task.FromException<MathStatistics.DescriptiveStatistics>(new ArgumentNullException());
+            }
+
+            if (a <= 0)
+            {
+                return Task.FromException<MathStatistics.DescriptiveStatistics>(new ArithmeticException());
+            }
+            
+            var data = Utils.StringToNumber(rawData);
+            var  result = new MathStatistics.DescriptiveStatistics(data, a);
+
+            return Task.FromResult(result);
+        }
+        
+        public Task<MathStatistics.DescriptiveStatistics> GetStatisticsAsync(double[] data, double a)
+        {
+            if (a <= 0)
+            {
+                return Task.FromException<MathStatistics.DescriptiveStatistics>(new ArithmeticException());
+            }
+            
+            var  result = new MathStatistics.DescriptiveStatistics(data, a);
+
+            return Task.FromResult(result);
+        }
+        
+        public Task<Hypothesis> GetHypothesisAsync(string rawData, double a)
         {
             if (string.IsNullOrEmpty(rawData) )
             {
@@ -25,11 +53,22 @@ namespace WebApplication.Data
                 return Task.FromException<Hypothesis>(new ArithmeticException());
             }
             
-            var dataString = rawData.Replace(" ", "").Split(";");
-            var data = Array.ConvertAll(dataString, Utils.StringToDouble);
-
-            var s = new Hypothesis(data, a);
-            return Task.FromResult(s);
+            var data = Utils.StringToNumber(rawData);
+            var result = new Hypothesis(data, a);
+            
+            return Task.FromResult(result);
+        }
+        
+        public Task<Hypothesis> GetHypothesisAsync(double[] data, double a)
+        {
+            if (a <= 0)
+            {
+                return Task.FromException<Hypothesis>(new ArithmeticException());
+            }
+            
+            var result = new Hypothesis(data, a);
+            
+            return Task.FromResult(result);
         }
         
         public Task<Analysis> GetAnalysisAsync(string xs, string ys, double a)
@@ -43,13 +82,22 @@ namespace WebApplication.Data
             {
                 return Task.FromException<Analysis>(new ArithmeticException());
             }
-            
-            var xString = xs.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x = Array.ConvertAll(xString, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
+
+            var x = Utils.StringToNumber(xs);
+            var y = Utils.StringToNumber(ys);
             
             var s = new Analysis(x, y, alf: a);
+            return Task.FromResult(s);
+        }
+        
+        public Task<Analysis> GetAnalysisAsync(double[] xs, double[] ys, double a)
+        {
+            if (a <= 0)
+            {
+                return Task.FromException<Analysis>(new ArithmeticException());
+            }
+
+            var s = new Analysis(xs, ys, alf: a);
             return Task.FromResult(s);
         }
         
@@ -65,12 +113,29 @@ namespace WebApplication.Data
                 return Task.FromException<AnalysisTable>(new ArithmeticException());
             }
             
-            var xString = xs.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x = Array.ConvertAll(xString, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
-            var nsDouble = Utils.ConvertAll(ns, Utils.StringToDouble);
+            var nsDouble = Utils.StringToNumber(ns);
+            var x = Utils.StringToNumber(xs);
+            var y = Utils.StringToNumber(ys);
+            
             var s = new AnalysisTable(x, y, nsDouble, a);
+            return Task.FromResult(s);
+        }
+        
+        public Task<AnalysisTable> GetAnalysisTableAsync(double[] xs, double[] ys, string[,] ns, double a)
+        {
+            if (ns.Length == 0)
+            {
+                return Task.FromException<AnalysisTable>(new ArgumentNullException());
+            }
+
+            if (a <= 0)
+            {
+                return Task.FromException<AnalysisTable>(new ArithmeticException());
+            }
+
+            var nsDouble = Utils.StringToNumber(ns);
+
+            var s = new AnalysisTable(xs, ys, nsDouble, a);
             return Task.FromResult(s);
         }
         
@@ -86,10 +151,8 @@ namespace WebApplication.Data
                 return Task.FromException<NonlinearDependencies>(new ArithmeticException());
             }
             
-            var xString = xs.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x = Array.ConvertAll(xString, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
+            var x = Utils.StringToNumber(xs);
+            var y = Utils.StringToNumber(ys);
             
             var s = new NonlinearDependencies(x, y, alf: a);
             return Task.FromResult(s);
@@ -107,11 +170,10 @@ namespace WebApplication.Data
                 return Task.FromException<NonlinearDependenciesTable>(new ArithmeticException());
             }
             
-            var xString = xs.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x = Array.ConvertAll(xString, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
-            var nsDouble = Utils.ConvertAll(ns, Utils.StringToDouble);
+            var x = Utils.StringToNumber(xs);
+            var y = Utils.StringToNumber(ys);
+            var nsDouble = Utils.StringToNumber(ns);
+            
             var s = new NonlinearDependenciesTable(x, y, nsDouble, a);
             return Task.FromResult(s);
         }
@@ -130,14 +192,10 @@ namespace WebApplication.Data
                 return Task.FromException<MultipleRegression>(new ArithmeticException());
             }
 
-            var x1String = xs1.Replace(" ", "").Split(";");
-            var x2String = xs2.Replace(" ", "").Split(";");
-            var x3String = xs3.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x1 = Array.ConvertAll(x1String, Utils.StringToDouble);
-            var x2 = Array.ConvertAll(x2String, Utils.StringToDouble);
-            var x3 = Array.ConvertAll(x3String, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
+            var x1 = Utils.StringToNumber(xs1);
+            var x2 = Utils.StringToNumber(xs2);
+            var x3 = Utils.StringToNumber(xs3);
+            var y = Utils.StringToNumber(ys);
 
             var s = new MultipleRegression(y, x1, x2, x3, alf: a);
             return Task.FromResult(s);
@@ -155,10 +213,8 @@ namespace WebApplication.Data
                 return Task.FromException<RankCorrelation>(new ArithmeticException());
             }
             
-            var xString = xs.Replace(" ", "").Split(";");
-            var yString = ys.Replace(" ", "").Split(";");
-            var x = Array.ConvertAll(xString, Utils.StringToDouble);
-            var y = Array.ConvertAll(yString, Utils.StringToDouble);
+            var x = Utils.StringToNumber(xs);
+            var y = Utils.StringToNumber(ys);
             
             var s = new RankCorrelation(x, y, alf: a);
             return Task.FromResult(s);

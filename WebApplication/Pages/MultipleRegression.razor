@@ -5,49 +5,57 @@
 
 @inject Service Service
 
-<p>
-    <input @bind="YsInput" />
-    <input @bind="Xs1Input"/>
-    <input @bind="Xs2Input"/>
-    <input @bind="Xs3Input"/>
-    <input type="number" @bind="a"/>
-    <button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(YsInput, Xs1Input, Xs2Input, Xs3Input, a)">Draw</button>
-</p>
-
+<div class="left62">
+	<h1>Многофакторная регрессия</h1>
+	<label>Результативный признак: <input class="long-input" @bind="YsInput"/></label><br>
+	<label>Первый фактор: <input class="long-input" @bind="Xs1Input"/></label><br>
+	<label>Второй фактор: <input class="long-input" @bind="Xs2Input"/></label><br>
+	<label>Третий фактор: <input class="long-input" @bind="Xs3Input"/></label>
+    <label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary " @onclick="async () => await CalcAndDraw()">Вычислить</button>
+    </div>
+</div>
 
 <div class="" style="display: flex; justify-content: flex-start">
-   <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
-                        @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
-    
+    <div style="display: flex; flex-direction: column">
+    		<h2 class="left62">Графики:</h2>
+    <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+                 @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+    </div>
+
     @if (analysis == null)
     {
-    	<div></div>
+        <div></div>
     }
     else if (analysis == null && IsClicked)
     {
-        <div>Loading...</div>
+        <div>Загрузка...</div>
     }
     else
     {
-        <div class="">
-            <p>Эмпирическое уравнение регрессии: @analysis.RegressionFunction</p>
-            <p>Коэффициент корреляции: @analysis.Correlation</p>
-            <p>Коэффициент корреляции: @analysis.CorrelationCorrected</p>
-            <p>@analysis.SignificanceCorrelation</p>
-            <p>Коэффициент детерминации: @analysis.Determination</p>
-            <p>@analysis.Adequacy</p>
-            <p>Коэффициент эластичности: @analysis.Elasticity</p>
-            <p>Ошибка: @Math.Round(analysis.Error,4)</p>
+        <div class="result-box">
+            <h2>Результат: </h2>
+            <div>
+                <p>Уравнение регрессии: <span>@analysis.RegressionFunction</span></p>
+                <p>Коэффициент корреляции: <span>@analysis.Correlation</span></p>
+                <p>Коэффициент корреляции: <span>@analysis.CorrelationCorrected</span></p>
+                <p><span>@analysis.SignificanceCorrelation</span></p>
+                <p>Коэффициент детерминации: <span>@analysis.Determination</span></p>
+                <p><span>@analysis.Adequacy</span></p>
+                <p>Коэффициент эластичности:<span>@analysis.Elasticity</span></p>
+                <p>Ошибка: <span> @Math.Round(analysis.Error, 4)</span></p>
+            </div>
         </div>
     }
 </div>
 
 @code
 {
-    private string Xs1Input;
-    private string Xs2Input;
-    private string Xs3Input;
-    private string YsInput;
+    private string Xs1Input = "37.9; 36.5; 36.6; 38.2; 39.4; 39.8; 40.1; 41.5; 42.6; 45.7";
+    private string Xs2Input = "11.6; 11.5; 11.5; 11.8; 12.0; 12.2; 12.5; 12.6; 12.8; 13.2";
+    private string Xs3Input = "9.5; 10.6; 7.8; 9.1; 13.6; 14.1; 14.6; 15.1; 16.0; 17.2";
+    private string YsInput = "81.5; 82.3; 83.8; 83.1; 84.3; 82.6; 85.4; 84.6; 86.8; 88.3";
     private double a = 0.05;
     private bool IsClicked;
     private MathStatistics.MultipleRegression analysis;
@@ -61,12 +69,12 @@
     Layout layout = new Layout();
     
     
-    private async Task CalcAndDraw(string ys, string xs1, string xs2, string xs3, double a)
+    private async Task CalcAndDraw()
     {
         IsClicked = true;
         try
         {
-            analysis = await Service.GetMultipleRegressionAsync(ys, xs1, xs2, xs3, a);
+            analysis = await Service.GetMultipleRegressionAsync(YsInput, Xs1Input, Xs2Input, Xs3Input, a);
         }
         catch (AggregateException)
         {
@@ -81,7 +89,8 @@
             Y = analysis.Ys,
             // Marker = {Color = Color.DeepPink},
             XAxis = "X",
-            YAxis = "Y"
+            YAxis = "Y",
+            Marker = new Marker{Color = "#902CA5"}
         });
         
         await chart.AddTrace(new Scatter
@@ -92,7 +101,8 @@
             Y = analysis.Ys,
             // Marker = {Color = Color.Red},
             XAxis = "X",
-            YAxis = "Y"
+            YAxis = "Y",
+            Marker = new Marker{Color = "#33126F"}
         });
         
         await chart.AddTrace(new Scatter
@@ -103,7 +113,8 @@
             X = analysis.Xs3,
             Y = analysis.Ys,
             XAxis = "X",
-            YAxis = "Y"
+            YAxis = "Y",
+            Marker = new Marker{Color = "#EB8AB1"}
         });
     }
 }

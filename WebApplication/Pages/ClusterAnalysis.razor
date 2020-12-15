@@ -1,45 +1,49 @@
 ﻿@page "/cluster"
 @using WebApplication.Data
 
-@inject IJSRuntime Js
+@inject IJSRuntime JsRuntime
 @inject Service Service
 
-<h3>ClusterAnalysis</h3>
+<div class="">
+	<h1>Кластерный анализ</h1>
+	<div>
+		<label style="display:block;">Количество кластеров: <input class="short-input" type="number" @bind="N"/></label>
+		<label style="display:block;">Количество объектов: <input class="short-input" type="number" @bind="M"/></label>
+	</div>
 
-<p>
-	<input type="number" @bind="N"/>
-	<input type="number" @bind="M"/>
-</p>
-
-<div>
-	<button type="button" class="btn btn-primary" @onclick="Magic">
-		Contunie
-	</button>
+	<div>
+		<button type="button" class="btn btn-primary button-box" @onclick="Magic">
+			Продолжить
+		</button>
+	</div>
 </div>
 
 @if (clicked)
 {
 	<table class="table">
-		@* <thead> *@
-		@* <tr> *@
-		@* 	<th>Remove</th> *@
-		@* 	<th>Date</th> *@
-		@* 	<th>Description</th> *@
-		@* 	<th>Is Complete</th> *@
-		@* </tr> *@
-		@* </thead> *@
+		<thead style="text-align:center">
+		<tr>
+			<td></td>
+			@for (var index = 1; index < N; index++)
+			{
+				<td>X @index</td>
+			}
+			<td>Название</td>
+		</tr>
+		</thead>
 		<tbody>
 		@for (var i = 0; i < M; i++)
 		{
 			// see https://stackoverflow.com/a/56426146/323447
 			var iCopy = i;
 			<tr>
+				<label style="margin:16px auto auto 12px; ">@(i + 1)</label>
 				@for (var j = 0; j < N; j++)
 				{
 					var jCopy = j;
 
-					<td>
-						<input id="@($"data{i}{j}")" value="@data[i][j]"
+					<td class="td-matrix">
+						<input class="input-matrix" id="@($"data{i}{j}")" value="@data[i][j]"
 						       @onchange="@(e => data[iCopy][jCopy] = e.Value.ToString())"/>
 					</td>
         @* 					<label for="@($"ns{i}{j}")">@i</label> *@
@@ -50,117 +54,136 @@
 		}
 		</tbody>
 	</table>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary" @onclick="async () => await Calc(data)">Вычислить</button>
+		@* <button type="button" class="btn btn-primary" onclick="initUI()">Render</button> *@
+		<button type="button" class="btn btn-primary" onclick="readData(@clusterJson)">Построить дендрограмму</button>
+		<button class="btn btn-primary" id="save-button" type="button" onclick="saveImage('innerSvg')">Скачать SVG</button>
+	</div>
+
+	<div class="options-box">
+		Количество кластеров:
+		<div class="options-box-value" id="num-clusters-slider-value">0</div>
+	</div>
+	<input class="options-box" id="num-clusters-slider" type="range"
+	       oninput="onNumClustersChanged(this.value)" onchange="onNumClustersChanged(this.value)"/>
+
+	<div class="options-box">
+		Порог расстояния:
+		<div class="options-box-value" id="threshold-slider-value">0</div>
+	</div>
+	<input class="options-box" id="threshold-slider" type="range"
+	       oninput="onThresholdChanged(this.value)" onchange="onThresholdChanged(this.value)"/>
 }
-<div>
-	<button type="button" class="btn btn-primary" @onclick="async () => await Calc(data)">Draw</button>
-	<button type="button" class="btn btn-primary" onclick="initUI()">Render</button>
-</div>
+
 
 <table id="ui-table">
-    <tr>
-        <td id="options-column">
-            
-            <!-- **** File options **** -->
-            <p class="options-title">Dendrogram:</p>
-            @* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
-            @* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
-            @* <input class="options-box" id="load-file-btn" type="button" value="Load..." onclick="document.getElementById('input-file').click();" /> *@
-            <button type="button" class="btn btn-primary" onclick="readData(@clusterJson)">Render</button>
+	<tr>
+		<td id="options-column">
 
-            <hr class="options-box" />
+			<!-- **** File options **** -->
+			<p class="options-title" hidden="true">Dendrogram:</p>
+			@* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
+			@* <input id="input-file" type="file" accept=".json" onchange="loadFile(this.files)" style="display: none"> *@
+			@* <input class="options-box" id="load-file-btn" type="button" value="Load..." onclick="document.getElementById('input-file').click();" /> *@
+			@* <button type="button" class="btn btn-primary" onclick="readData(@clusterJson)">Render</button> *@
 
-            <!-- **** Visual options **** -->
-            <p class="options-title">Visual options:</p>
-            <div class="chkbox-box">
-                Show labels:
-                <div style="float: right">
-                    <input id="labels-chkbox" type="checkbox" unchecked onclick="onShowLabels()">
-                    <label for="labels-chkbox"></label>
-                </div>
-            </div>
-            <div class="chkbox-box">
-                Vertical layout:
-                <div style="float: right">
-                    <input id="vert-layout-chkbox" type="checkbox" checked onclick="onVertLayout()">
-                    <label for="vert-layout-chkbox"></label>
-                </div>
-            </div>
-            <div class="chkbox-box">
-                Straight links:
-                <div style="float: right">
-                    <input id="straight-chkbox" type="checkbox" checked onclick="onStraightLinks()">
-                    <label for="straight-chkbox"></label>
-                </div>
-            </div>
-            <div class="chkbox-box">
-                Grayscale:
-                <div style="float: right">
-                    <input id="grayscale-chkbox" type="checkbox" onclick="onGrayscale()">
-                    <label for="grayscale-chkbox"></label>
-                </div>
-            </div>
-            <div class="chkbox-box">
-                Background color:
-                <div style="float: right">
-                    <input id="color-picker" type="hidden" onchange="onColorSchemeChanged()" value="none">
-                    <input id="pick-color-btn" type="button" class="jscolor {valueElement: 'color-picker'}">
-                    <label for="pick-color-btn"></label>
-                </div>
-            </div>
-            <div class="options-box">
-                Color scheme:
-                <select id="color-scheme-select" class="options-select" onchange="onColorSchemeChanged();"></select>
-            </div>
+			<hr class="options-box" hidden="true"/>
 
-            <hr class="options-line"/>
+			<!-- **** Visual options **** -->
+			<p class="options-title" hidden="true">Visual options:</p>
+			<div class="chkbox-box" hidden="true">
+				Показать названия:
+				<div style="float: right">
+					<input id="labels-chkbox" type="checkbox" checked onclick="onShowLabels()">
+					<label for="labels-chkbox"></label>
+				</div>
+			</div>
+			<div class="chkbox-box" hidden="true">
+				Вертикальный вид:
+				<div style="float: right">
+					<input id="vert-layout-chkbox" type="checkbox" checked onclick="onVertLayout()">
+					<label for="vert-layout-chkbox"></label>
+				</div>
+			</div>
+			<div class="chkbox-box" hidden="true">
+				Straight links:
+				<div style="float: right">
+					<input id="straight-chkbox" type="checkbox" checked onclick="onStraightLinks()">
+					<label for="straight-chkbox"></label>
+				</div>
+			</div>
+			<div class="chkbox-box" hidden="true">
+				Grayscale:
+				<div style="float: right">
+					<input id="grayscale-chkbox" type="checkbox" onclick="onGrayscale()">
+					<label for="grayscale-chkbox"></label>
+				</div>
+			</div>
+			<div class="chkbox-box" hidden="true">
+				Background color:
+				<div style="float: right">
+					<input id="color-picker" type="hidden" onchange="onColorSchemeChanged()" value="none">
+					<input id="pick-color-btn" type="button" class="jscolor {valueElement: 'color-picker'}">
+					<label for="pick-color-btn"></label>
+				</div>
+			</div>
+			<div class="options-box" hidden="true">
+				Color scheme:
+				<select id="color-scheme-select" class="options-select" onchange="onColorSchemeChanged();"></select>
+			</div>
 
-            <!-- **** Interaction options **** -->
-            <p class="options-title">Interaction options:</p>
-            <div class="chkbox-box">
-                Zoom & drag:
-                <div style="float: right">
-                    <input id="zoom-chkbox" type="checkbox" onclick="update()">
-                    <label for="zoom-chkbox"></label>
-                </div>
-            </div>
-            <input class="options-box" id="center-button" type="button" value="Reset view" onclick="onResetDragZoom()"/>
+			<hr class="options-line" hidden="true"/>
 
-            <hr class="options-line"/>
+			<!-- **** Interaction options **** -->
+			<p class="options-title" hidden="true">Interaction options:</p>
+			<div class="chkbox-box" hidden="true">
+				Zoom & drag:
+				<div style="float: right">
+					<input id="zoom-chkbox" type="checkbox" onclick="update()">
+					<label for="zoom-chkbox"></label>
+				</div>
+			</div>
+			<input hidden="true" class="options-box" id="center-button" type="button" value="Reset view" onclick="onResetDragZoom()"/>
 
-            <!-- **** Dendrogram options **** -->
-            <p class="options-title">Dendrogram options:</p>
-            <div class="options-box">
-                Num. clusters:
-                <div class="options-box-value" id="num-clusters-slider-value">0</div>
-            </div>
-            <input class="options-box" id="num-clusters-slider" type="range"
-                   oninput="onNumClustersChanged(this.value)" onchange="onNumClustersChanged(this.value)"/>
+			<hr class="options-line" hidden="true"/>
 
-            <div class="options-box">
-                Dist. threshold:
-                <div class="options-box-value" id="threshold-slider-value">0</div>
-            </div>
-            <input class="options-box" id="threshold-slider" type="range"
-                   oninput="onThresholdChanged(this.value)" onchange="onThresholdChanged(this.value)"/>
+			<!-- **** Dendrogram options **** -->
+			<p class="options-title" hidden="true">Dendrogram options:</p>
+			<div class="options-box" hidden="true">
+				Количество кластеров:
+				<div class="options-box-value" id="num-clusters-slider-value">0</div>
+			</div>
+			<input hidden="true" class="options-box" id="num-clusters-slider" type="range"
+			       oninput="onNumClustersChanged(this.value)" onchange="onNumClustersChanged(this.value)"/>
 
-            <!-- **** Buttons **** -->
-            <hr class="options-line"/>
-            <input class="options-box" id="save-button" type="button" value="Download SVG" onclick="saveImage('innerSvg')"/>
+			<div hidden="true" class="options-box">
+				Порог расстояния:
+				<div class="options-box-value" id="threshold-slider-value">0</div>
+			</div>
+			<input hidden="true" class="options-box" id="threshold-slider" type="range"
+			       oninput="onThresholdChanged(this.value)" onchange="onThresholdChanged(this.value)"/>
 
-        </td>
-        <td id="container-column">
-            <div id="container"></div>
-        </td>
-    </tr>
+			<!-- **** Buttons **** -->
+			<hr hidden="true" class="options-line"/>
+			<input hidden="true" class="btn btn-primary" id="save-button" type="button" value="Скачать SVG" onclick="saveImage('innerSvg')"/>
+
+		</td>
+
+	</tr>
 </table>
+<div id="container-column">
+	<div id="container"></div>
+</div>
+
 
 @code {
 	private int N = 2;
-	private int M = 2;
+	private int M = 19;
 	private string[][] data;
 	private bool clicked;
 	private string clusterJson;
-	
+
 	private void Magic()
 	{
 		clicked = true;
@@ -172,6 +195,20 @@
 		try
 		{
 			clusterJson = await Service.GetClusterAnalysisAsync(strings);
+			await JsRuntime.InvokeVoidAsync("initUI");
+	// await JsRuntime.InvokeVoidAsync("readData", clusterJson);
+		}
+		catch (AggregateException)
+		{
+			return;
+		}
+	}
+
+	private async Task Calc2()
+	{
+		try
+		{
+			await JsRuntime.InvokeAsync<bool>("readData", clusterJson);
 		}
 		catch (AggregateException)
 		{
@@ -181,14 +218,32 @@
 
 	private void InitArray()
 	{
-		data = new[] {new[] {"49850", "Лянгасово"}, new[] {"42361", "Егоршино"}};
-		// data = new string[N][];
-		// data[0] = new string[N];
+		data = new[]
+		{
+			new[] {"49850", "Лянгасово"}, 
+			new[] {"42361", "Егоршино"}, 
+			new[] {"13428", "Орехово"}, 
+			new[] {"37694", "Перьм"}, 
+			new[] {"22748", "Войновка"}, 
+			new[] {"20016", "Инска"},
+			new[] {"44689", "Омск"},
+			new[] {"39460", "Екатеринбург"},
+			new[] {"23164", "Беодяуш"},
+			new[] {"10748", "Смычка"},
+			new[] {"29710", "Чусовская"},
+			new[] {"11547", "Агрыз"},
+			new[] {"38155", "НижнийНовгород"},
+			new[] {"17568", "Юдино"},
+			new[] {"40036", "Челябинск"},
+			new[] {"23757", "Богданович"},
+			new[] {"14692", "Каменск"},
+			new[] {"19864", "Курган"},
+			new[] {"13000", "Алтайская"}
+		};
+		// data = new string[M][];
 		// for (var index = 0; index < data.Length; index++)
 		// {
-		// 	data[index] = new string[M];
+		// 	data[index] = new string[N];
 		// }
 	}
-	
-	
 }

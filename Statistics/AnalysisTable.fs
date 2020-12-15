@@ -135,7 +135,7 @@ type AnalysisTable(xs: double[], ys: double[], ns: double[,], alf: double) =
         let norm = Utilities2.NormalInv alf 
         let l = Math.Atanh r - (norm) / sqrt(n - 3.0) |> tanh
         let r = Math.Atanh r + (norm) / sqrt(n - 3.0) |> tanh
-        String.Format("Доверительный интервал коэффициента корреляции {0} < r < {1} ", Math.Round(l, 4), Math.Round(r, 4))
+        String.Format("{0} < r < {1} ", Math.Round(l, 4), Math.Round(r, 4))
     
     member this.Determination =
         let r1 =
@@ -147,7 +147,7 @@ type AnalysisTable(xs: double[], ys: double[], ns: double[,], alf: double) =
             |> List.map2 (fun elem2 elem1 -> (elem1 - my) ** 2.0 * elem2) ws
             |> List.sum
             
-        r2 / r1
+        Math.Round(r2 / r1, 4)
     
     member this.Adequacy =
         let l =  s2 / s1
@@ -162,12 +162,12 @@ type AnalysisTable(xs: double[], ys: double[], ns: double[,], alf: double) =
     member this.confidenceIntervalB =
         let Sb = S / (sx * sqrt n1)
         let st = Utilities2.Student (n - 2.0) alf
-        String.Format("Доверительный интервал {0} < b < {1}", b - st * Sb, b + st * Sb)
+        String.Format("{0} < b < {1}", Math.Round(b - st * Sb, 4), Math.Round(b + st * Sb, 4))
     
     member this.confidenceIntervalA =
         let Sa = S * sqrt (1.0 / n + mx ** 2.0 / (n1 * sx ** 2.0))
         let st = Utilities2.Student (n - 2.0) alf
-        String.Format("Доверительный интервал {0} < a < {1}", a - st * Sa, a + st * Sa)
+        String.Format("{0} < a < {1}", Math.Round(a - st * Sa, 4), Math.Round(a + st * Sa, 4))
     
     member this.Xs = xs |> Seq.cast<obj> |> List
     

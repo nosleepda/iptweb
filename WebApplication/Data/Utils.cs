@@ -1,14 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using ExamplesUtil;
 
 namespace WebApplication.Data
 {
     public static class Utils
     {
-        public static double StringToDouble(string x)
+        private static double StringToDouble(string x)
         {
-            return double.Parse(x, System.Globalization.CultureInfo.InvariantCulture);
+            return double.Parse(x, CultureInfo.InvariantCulture);
+        }
+
+        private static double StringToInt(string x)
+        {
+            return int.Parse(x, CultureInfo.InvariantCulture);
+        }
+
+        public static double[] StringToNumber(string rawData)
+        {
+            var data = rawData.Replace(" ", "").Split(";");
+
+            return double.TryParse(data[0], NumberStyles.Number, CultureInfo.InvariantCulture, out _)
+                ? Array.ConvertAll(data, StringToDouble)
+                : Array.ConvertAll(data, StringToInt);
+        }
+        
+        public static double[,] StringToNumber(string[,] rawData)
+        {
+            return double.TryParse(rawData[0, 0], out _)
+                ? ConvertAll(rawData, StringToDouble)
+                : ConvertAll(rawData, StringToInt);
         }
 
         public static TOutput[,] ConvertAll<TInput, TOutput>(TInput[,] data, Converter<TInput, TOutput> converter)
@@ -18,14 +40,24 @@ namespace WebApplication.Data
             {
                 for (var j = 0; j < data.GetLength(1); j++)
                 {
-                    output[i, j] = converter(data[i, j]);
+                    var temp = data[i, j];
+                    if (CheckElement<TInput>(temp))
+                    {
+                        throw new ArgumentException();
+                    }
+                    output[i, j] = converter(temp);
                 }
             }
 
             return output;
         }
-        
-        public static ISet<DataPoint> ClusterParse(IReadOnlyCollection<string[]> data)
+
+        private static bool CheckElement<T>(object elem)
+        {
+            return typeof(T) == typeof(string) && string.IsNullOrEmpty((string) elem);
+        }
+
+        public static ISet<DataPoint> ClusterParse(IEnumerable<string[]> data)
         {
             var dataPoints = new HashSet<DataPoint>();
 
@@ -49,7 +81,5 @@ namespace WebApplication.Data
 
             return dataPoints;
         }
-        
-        
     }
 }

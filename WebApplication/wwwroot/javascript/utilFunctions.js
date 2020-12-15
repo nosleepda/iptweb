@@ -159,7 +159,7 @@ function saveImage(elementID) {
     };
 
     const svg = document.getElementById(elementID);
-    const svgImgFile = getFileName(window.fileName);
+    const svgImgFile = Date.now();//getFileName(window.fileName);
 
     console.info(`Saving ${svgImgFile}...`);
 

@@ -5,16 +5,14 @@
 
 @inject Service Service
 
-<h3>Nonlinear Dependencies</h3>
-
-<p>
-	<input @bind="XsInput"/>
-	<input @bind="YsInput"/>
-	<input type="number" @bind="a"/>
-	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
-	<button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
-	<button type="button" class="btn btn-primary" @onclick="DeleteScatter">Pop</button>
-</p>
+<div class="left62">
+	<h1>Нелинейная зависимость</h1>
+	<label>Первый набор данных: <input class="long-input" @bind="XsInput"/></label><br>
+	<label>Второй набор данных: <input class="long-input" @bind="YsInput"/></label>
+	<label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<button type="button" class="btn btn-primary button-box" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
+	<button type="button" class="btn btn-primary button-box" @onclick="Clear">Clear</button>
+</div>
 
 <div class="" style="display: flex; justify-content: flex-start">
 	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
@@ -25,19 +23,22 @@
 	}
 	else if (analysis == null && IsClicked)
 	{
-		<div>Loading...</div>
+		<div>Загрузка...</div>
 	}
 	else
 	{
-		<div class="">
-			<p>Среднее значение Х: @analysis.MeanX</p>
-			<p>Среднее значение Y: @analysis.MeanY</p>
-			<p>Значение Sx: @analysis.Sx</p>
-			<p>Значение Sy: @analysis.Sy</p>
-			<p>Коэффициент корреляции: @analysis.CorrelationIndex</p>
-			<p>Эмпирическое уравнение регрессии: @analysis.RegressionFunction</p>
-			<p>Коэффициент детерминации: @analysis.Determination</p>
-			<p>@analysis.Adequacy</p>
+		<div class="result-box">
+			<h2>Результат: </h2>
+			<div>
+				<p>Среднее значение Х: <span>@analysis.MeanX</span></p>
+				<p>Среднее значение Y: <span>@analysis.MeanY</span></p>
+				<p>Значение Sx: <span>@analysis.Sx</span></p>
+				<p>Значение Sy: <span>@analysis.Sy</span></p>
+				<p>Коэффициент корреляции: <span>@analysis.CorrelationIndex</span></p>
+				<p>Уравнение регрессии:<span>@analysis.RegressionFunction</span></p>
+				<p>Коэффициент детерминации: <span>@analysis.Determination</span></p>
+				<p><span>@analysis.Adequacy</span></p>
+			</div>
 		</div>
 	}
 </div>
@@ -49,8 +50,8 @@
 
 @code
 {
-	private string XsInput;
-	private string YsInput;
+	private string XsInput = "1.0; 1.5; 2.5; 3.5; 4.5; 5.5; 6.5";
+	private string YsInput = "4.0; 6.0; 6.8; 7.9; 8.7; 9.0; 9.5";
 	private double a = 0.05;
 	private bool IsClicked;
 
@@ -64,7 +65,13 @@
 		Responsive = true
 	};
 
-	Layout layout = new Layout();
+	Layout layout = new Layout
+	{
+		Title = new Title
+		{
+			Text = "Корреляционное поле"
+		}
+	};
 
 	private async Task DeleteScatter()
 	{
@@ -86,11 +93,12 @@
 		await chart.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
-			// Mode = ModeFlag.Markers,
+	// Mode = ModeFlag.Markers,
 			X = analysis.Xs,
 			Y = analysis.Ys,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#33126F"}
 		});
 
 		await chart.AddTrace(new Scatter
@@ -100,36 +108,41 @@
 			X = analysis.Xfs,
 			Y = analysis.Yfs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#902CA5"}
 		});
 
 		await chart2.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
-			// Mode = ModeFlag.Markers,
+	// Mode = ModeFlag.Markers,
 			X = analysis.Xs,
 			Y = analysis.Ys,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#33126F"}
 		});
 
 		await chart2.AddTrace(new Scatter
 		{
 			Name = "Уравнение регрессии",
-			// Mode = ModeFlag.Lines,
+	// Mode = ModeFlag.Lines,
 			X = analysis.Xs,
 			Y = analysis.Fxs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#902CA5"}
 		});
 	}
 
 	private async Task Clear()
 	{
-		await chart.Clear();
+		if (chart != null) await chart.Clear();
+		if (chart2 != null) await chart2.Clear();
 		analysis = null;
 		XsInput = null;
 		YsInput = null;
 		a = 0;
+		IsClicked = false;
 	}
 }

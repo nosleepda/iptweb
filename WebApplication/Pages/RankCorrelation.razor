@@ -1,15 +1,19 @@
 ﻿@page "/rankCorrelation"
+
 @using WebApplication.Data
 
 @inject Service Service
 
-<p>
-    <input @bind="XsInput" />
-    <input @bind="YsInput" />
-    <input type="number" @bind="a" />
-    <button type="button" class="btn btn-primary" @onclick="async () => await CalcAndDraw(XsInput, YsInput, a)">Draw</button>
-    <button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
-</p>
+<div class="left62">
+	<h1>Ранговая корреляция</h1>
+	<label>Первый набор данных: <input class="long-input" @bind="XsInput"/></label><br>
+	<label>Второй набор данных: <input class="long-input" @bind="YsInput"/></label>
+	<label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary" @onclick="async () => await CalcAndDraw()">Продолжить</button>
+		<button type="button" class="btn btn-primary" @onclick="Clear">Очистить</button>
+	</div>
+</div>
 
 <div class="" style="display: flex; justify-content: flex-start">
 
@@ -19,17 +23,20 @@
     }
     else if (analysis == null && IsClicked)
     {
-        <div>Loading...</div>
+        <div>Загрузка...</div>
     }
     else
     {
-        <div class="">
-            <p>Спирмен:</p>
-            <p>Коэффициент корреляции: @analysis.CorrelationSpearman</p>
-            <p>Значимость: @analysis.SignificanceCorrelationSpearman</p>
-            <p>Кендалл:</p>
-            <p>Коэффициент корреляции: @analysis.CorrelationKendall</p>
-            <p>Значимость: @analysis.SignificanceCorrelationKendall</p>
+        <div class="result-box">
+            <h2>Результат: </h2>
+            <div>
+                 <p>Спирмен:</p>
+                <p>Коэффициент корреляции: <span>@analysis.CorrelationSpearman</span></p>
+                <p>Значимость: <span>@analysis.SignificanceCorrelationSpearman</span></p>
+                <p>Кендалл:</p>
+                <p>Коэффициент корреляции: <span>@analysis.CorrelationKendall</span></p>
+                <p>Значимость: <span>@analysis.SignificanceCorrelationKendall</span></p>
+            </div>
         </div>
     }
 </div>
@@ -43,11 +50,11 @@
 
     private MathStatistics.RankCorrelation analysis;
 
-    private async Task CalcAndDraw(string xs, string ys, double a)
+    private async Task CalcAndDraw()
     {
         try
         {
-            analysis = await Service.GetRankCorrelationAsync(xs, ys, a);
+            analysis = await Service.GetRankCorrelationAsync(XsInput, YsInput, a);
         }
         catch (AggregateException)
         {

@@ -4,139 +4,130 @@
 @using WebApplication.Data
 
 @inject Service Service
+@inject IJSRuntime JsRuntime;
 
-<p>
-    <input @bind="XsInput" />
-    <input @bind="YsInput" />
-    <input type="number" @bind="a" />
-    <button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Draw</button>
-    <button type="button" class="btn btn-primary" @onclick="Clear">Clear</button>
-    <button type="button" class="btn btn-primary" @onclick="DeleteScatter">Pop</button>
-</p>
-
-
+<div class="left62">
+	<h1>Регрессионный и корреляционный анализ</h1>
+	<label>Первый набор данных: <input class="long-input" @bind="XsInput"/></label><br>
+	<label>Второй набор данных: <input class="long-input" @bind="YsInput"/></label>
+	<label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, a)">Вычислить</button>
+		<button type="button" class="btn btn-primary" @onclick="Clear">Очистить</button>
+	</div>
+</div>
 
 <div class="" style="display: flex; justify-content: flex-start">
-           <PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
-                        @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
-    
-    @if (analysis == null)
-    {
-    	<div></div>
-    }
-    else if (analysis == null && IsClicked)
-    {
-        <div>Loading...</div>
-    }
-    else
-    {
-        <div class="">
-            <p>Среднее значение Х: @analysis.MeanX</p>
-            <p>Среднее значение Y: @analysis.MeanY</p>
-            <p>Значение Sx: @analysis.Sx</p>
-            <p>Значение Sy: @analysis.Sy</p>
-            <p>Коэффициент корреляции: @analysis.Correlation</p>
-            <p>Значимость: @analysis.SignificanceCorrelation</p>
-            <p>@analysis.ConfidenceIntervalCorrelation</p>
-            <p>Эмпирическое уравнение регрессии Y на X: @analysis.EquationYX</p>
-            <p>Эмпирическое уравнение регрессии X на Y: @analysis.EquationXY</p>
-            <p>@analysis.confidenceIntervalA</p>
-            <p>@analysis.confidenceIntervalB</p>
-            <p>Коэффициент детерминации: @analysis.Determination</p>
-            <p>@analysis.Adequacy</p>
-            <p>Коэффициент эластичности: @analysis.Elasticity</p>
-        </div>
-    }
+	<div style="display: flex; flex-direction: column">
+		<h2 class="left62">Графики:</h2>
+		<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+		             @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+	</div>
+
+	@if (analysis == null)
+	{
+		<div></div>
+	}
+	else if (analysis == null && IsClicked)
+	{
+		<div>Загрузка...</div>
+	}
+	else
+	{
+		<div class="result-box">
+			<h2>Результат: </h2>
+			<div>
+				<p>Среднее значение Х: <span>@analysis.MeanX</span></p>
+				<p>Среднее значение Y: <span>@analysis.MeanY</span></p>
+				<p>Значение Sx: <span>@analysis.Sx</span></p>
+				<p>Значение Sy: <span>@analysis.Sy</span></p>
+				<p>Коэффициент корреляции: <span>@analysis.Correlation</span></p>
+				<p>Значимость: <span>@analysis.SignificanceCorrelation</span></p>
+				<p>Доверительный интервал: <span>@analysis.ConfidenceIntervalCorrelation</span></p>
+				<p>Уравнение Y на X: <span>@analysis.EquationYX</span></p>
+				<p>Уравнение X на Y: <span>@analysis.EquationXY</span></p>
+				<p>Доверительный интервал: <span>@analysis.confidenceIntervalA</span></p>
+				<p>Доверительный интервал: <span>@analysis.confidenceIntervalB</span></p>
+				<p>Коэффициент детерминации: <span>@analysis.Determination</span></p>
+				<p><span>@analysis.Adequacy</span></p>
+				<p>Коэффициент эластичности: <span>@analysis.Elasticity</span></p>
+			</div>
+		</div>
+	}
 </div>
 
 @code
 {
-    private string XsInput;
-    private string YsInput;
-    private double a = 0.05;
-    private bool IsClicked;
+	private string XsInput = "1.94; 2.68; 3.47; 4.12; 4.77; 5.34; 5.85; 6.65";
+	private string YsInput = "0.82; 0.97; 1.06; 1.08; 1.1; 1.14; 1.21; 1.25";
+	private double a = 0.05;
+	private bool IsClicked;
+	private MathStatistics.Analysis analysis;
+	PlotlyChart chart;
 
-    private MathStatistics.Analysis analysis;
-    
-    PlotlyChart chart;
+	Config config = new Config
+	{
+		Responsive = true
+	};
 
-    Config config = new Config
-    {
-        Responsive = true
-    };
+	Layout layout = new Layout
+	{
+		Title = new Title
+		{
+			Text = "Корреляционное поле"
+		}
+	};
 
-    Layout layout = new Layout
-    {
-    // // Title = new Title
-    // // {
-    // //     Text = "Scatter"
-    // // },
-    // YAxis = new List<YAxis>
-    // {
-    //     new YAxis
-    //     {
-    //         Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title
-    //         {
-    //             Text = "Y"
-    //         }
-    //     }
-    // },
-    // XAxis = new List<XAxis>
-    // {
-    //     new XAxis
-    //     {
-    //         Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title
-    //         {
-    //             Text = "X"
-    //         }
-    //     }
-    // }
-    };
+	private async Task CalcAndDraw(string xs, string ys, double a)
+	{
+		IsClicked = true;
+		try
+		{
+			var xsDouble = Utils.StringToNumber(xs);
+			var ysDouble = Utils.StringToNumber(ys);
+			if (xsDouble.Length < 3 || ysDouble.Length < 3)
+			{
+				await JsRuntime.InvokeVoidAsync("alert", "Длина данных должна быть не меньше трёх.");
+				return;
+			}
 
-    private async Task DeleteScatter()
-    {
-        await chart.DeleteTrace(0);
-    }
-    
-    private async Task CalcAndDraw(string xs, string ys, double a)
-    {
-        IsClicked = true;
-        try
-        {
-            analysis = await Service.GetAnalysisAsync(xs, ys, a);
-        }
-        catch (AggregateException)
-        {
-            return;
-        }
+			analysis = await Service.GetAnalysisAsync(xs, ys, a);
+		}
+		catch (Exception)
+		{
+			await JsRuntime.InvokeVoidAsync("alert", "Поле ввода не может быть пустым!");
+			return;
+		}
 
-        await chart.AddTrace(new Scatter
-        {
-            Name = "Исходные данные",
-            Mode = ModeFlag.Markers,
-            X = analysis.Xs,
-            Y = analysis.Ys,
-            XAxis = "X",
-            YAxis = "Y"
-        });
+		await chart.AddTrace(new Scatter
+		{
+			Name = "Исходные данные",
+			Mode = ModeFlag.Markers,
+			X = analysis.Xs,
+			Y = analysis.Ys,
+			XAxis = "X",
+			YAxis = "Y",
+			Marker = new Marker{Color = "#33126F"}
+		});
 
-        await chart.AddTrace(new Scatter
-        {
-            Name = "Уравнение регрессии",
-            Mode = ModeFlag.Lines,
-            X = analysis.Xs,
-            Y = analysis.YsLin,
-            XAxis = "X",
-            YAxis = "Y"
-        });
-    }
+		await chart.AddTrace(new Scatter
+		{
+			Name = "Уравнение регрессии",
+			Mode = ModeFlag.Lines,
+			X = analysis.Xs,
+			Y = analysis.YsLin,
+			XAxis = "X",
+			YAxis = "Y",
+			Marker = new Marker{Color = "#902CA5"}
+		});
+	}
 
-    private async Task Clear()
-    {
-        await chart.Clear();
-        analysis = null;
-        XsInput = null;
-        YsInput = null;
-        a = 0;
-    }
+	private async Task Clear()
+	{
+		if (chart != null) await chart.Clear();
+		analysis = null;
+		XsInput = null;
+		YsInput = null;
+		a = 0.05;
+	}
 }

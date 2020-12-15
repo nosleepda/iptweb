@@ -4,43 +4,42 @@
 
 @inject Service Service
 
-<h3>Nonlinear Dependencies Table</h3>
-
-<p>
-	<input @bind="XsInput" />
-	<input @bind="YsInput" />
-	<input type="number" @bind="a" />
-</p>
-
-<div>
-	<button type="button" class="btn btn-primary" @onclick="Magic">
-		Contunie
-	</button>
+<div class="left62">
+	<h1>Нелинейная зависимость</h1>
+	<label>Первый набор данных: <input class="long-input" @bind="XsInput"/></label><br>
+	<label>Второй набор данных: <input class="long-input" @bind="YsInput"/></label>
+	<label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary" @onclick="Magic">Продолжить</button>
+		<button type="button" class="btn btn-primary" disabled="@(!clicked)" @onclick="async () => await CalcAndDraw()">Вычислить</button>
+	</div>
 </div>
 
 @if (clicked)
 {
-	<table class="table">
-		@* <thead> *@
-		@* <tr> *@
-		@* 	<th>Remove</th> *@
-		@* 	<th>Date</th> *@
-		@* 	<th>Description</th> *@
-		@* 	<th>Is Complete</th> *@
-		@* </tr> *@
-		@* </thead> *@
+	<table class="table left62">
+		<thead style="text-align:center">
+		<tr>
+			<td>y\x</td>
+			@foreach (var x in Xs)
+			{
+				<td>@x</td>
+			}
+		</tr>
+		</thead>
 		<tbody>
 		@for (var i = 0; i < Ys.Length; i++)
 		{
 			// see https://stackoverflow.com/a/56426146/323447
 			var iCopy = i;
 			<tr>
+				<label style="margin:16px auto auto 12px; ">@Ys[i]</label>
 				@for (var j = 0; j < Xs.Length; j++)
 				{
 					var jCopy = j;
 
-					<td>
-						<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]"
+					<td class="td-matrix">
+						<input class="input-matrix" type="number" id="@($"ns{i}{j}")" value="@ns[i, j]"
 						       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/>
 					</td>
         @* 					<label for="@($"ns{i}{j}")">@i</label> *@
@@ -53,24 +52,35 @@
 	</table>
 }
 
-<div>
-	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, ns, a)">Draw</button>
-</div>
 
 <div class="" style="display: flex; justify-content: flex-start">
-	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
-	             @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
-	@if (analysis != null)
+	<div style="display: flex; flex-direction: column">
+		<h2 class="left62">Графики:</h2>
+		<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
+		             @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
+	</div>
+	@if (analysis == null)
 	{
-		<div>
-			<p>Среднее значение Х: @analysis.MeanX</p>
-			<p>Среднее значение Y: @analysis.MeanY</p>
-			<p>Значение Sx: @analysis.Sx</p>
-			<p>Значение Sy: @analysis.Sy</p>
-			<p>Коэффициент корреляции: @analysis.CorrelationRatio</p>
-			<p>Эмпирическое уравнение регрессии: @analysis.RegressionFunction</p>
-			<p>Коэффициент детерминации: @analysis.Determination</p>
-			<p>@analysis.Adequacy</p>
+		<div></div>
+	}
+	else if (analysis == null && clicked)
+	{
+		<div>Загрузка...</div>
+	}
+	else
+	{
+		<div class="result-box">
+			<h2>Результат: </h2>
+			<div>
+				<p>Среднее значение Х: <span>@analysis.MeanX</span></p>
+				<p>Среднее значение Y: <span>@analysis.MeanY</span></p>
+				<p>Значение Sx: <span>@analysis.Sx</span></p>
+				<p>Значение Sy: <span>@analysis.Sy</span></p>
+				<p>Коэффициент корреляции: <span>@analysis.CorrelationRatio</span></p>
+				<p>Уравнение регрессии:<span>@analysis.RegressionFunction</span></p>
+				<p>Коэффициент детерминации: <span>@analysis.Determination</span></p>
+				<p><span>@analysis.Adequacy</span></p>
+			</div>
 		</div>
 	}
 </div>
@@ -81,8 +91,8 @@
 </div>
 
 @code {
-	private string XsInput;
-	private string YsInput;
+	private string XsInput = "5.0; 10.0; 15.0; 20.0; 25.0";
+	private string YsInput = "10.0; 11.0; 12.0; 13.0";
 	private double[] Xs;
 	private double[] Ys;
 	private double a = 0.05;
@@ -100,20 +110,18 @@
 	Layout layout = new Layout();
 	private void Magic()
 	{
-		var xString = XsInput.Replace(" ", "").Split(";");
-		var yString = YsInput.Replace(" ", "").Split(";");
-		Xs = Array.ConvertAll(xString, Utils.StringToDouble);
-		Ys = Array.ConvertAll(yString, Utils.StringToDouble);
+		Xs = Utils.StringToNumber(XsInput);
+		Ys = Utils.StringToNumber(YsInput);
 		clicked = true;
 		// ns = new string[XsInput.Length,YsInput.Length];
 		ns  = new[,]{{"0", "0", "0", "1", "4"}, {"0", "3", "6", "4", "1"}, {"1", "3", "2", "0", "1"}, {"3", "0", "1", "0", "0"}};
 	}
 
-	private async Task CalcAndDraw(string xs, string ys, string[,] ns, double a)
+	private async Task CalcAndDraw()
 	{
 		try
 		{
-			analysis = await Service.GetNonlinearDependenciesTableAsync(xs, ys, ns, a);
+			analysis = await Service.GetNonlinearDependenciesTableAsync(XsInput, YsInput, ns, a);
 			
 		}
 		catch (AggregateException)
@@ -127,7 +135,8 @@
 			X = analysis.Xs,
 			Y = analysis.Ys,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#33126F"}
 		});
 
 		await chart.AddTrace(new Scatter
@@ -137,7 +146,8 @@
 			X = analysis.Xfs,
 			Y = analysis.Yfs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#902CA5"}
 		});
 
 		await chart2.AddTrace(new Scatter
@@ -146,7 +156,8 @@
 			X = analysis.Xs,
 			Y = analysis.Ys,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#33126F"}
 		});
 
 		await chart2.AddTrace(new Scatter
@@ -155,7 +166,8 @@
 			X = analysis.Xs,
 			Y = analysis.Fxs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker{Color = "#902CA5"}
 		});
 	}
 }

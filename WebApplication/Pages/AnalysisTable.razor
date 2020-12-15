@@ -1,64 +1,49 @@
 ﻿@page "/analysisTable"
+
 @using WebApplication.Data
 @using Plotly.Blazor.Traces.ScatterLib
 
 @inject Service Service
+@inject IJSRuntime JsRuntime;
 
-<h3>AnalysisTable</h3>
-
-@* <ul class="gridBox"> *@
-@*     @for (var x = 1; x < 6; x++) *@
-@*     { *@
-@*         <li style="list-style: none;"> *@
-@*             <input @bind="size1" /> *@
-@*         </li> *@
-@*     } *@
-@* </ul> *@
-@* *@
-@* @code { *@
-@*     private int size1; *@
-@* } *@
-
-<p>
-	<input @bind="XsInput"/>
-	<input @bind="YsInput"/>
-	<input type="number" @bind="a"/>
-</p>
-
-<div>
-	<button type="button" class="btn btn-primary" @onclick="Magic">
-		Contunie
-	</button>
+<div class="left62">
+	<h1>Регрессионный и корреляционный анализ</h1>
+	<label>Первый набор данных: <input class="long-input" @bind="_xsInput"/></label><br>
+	<label>Второй набор данных: <input class="long-input" @bind="_ysInput"/></label>
+	<label style="display:block;">Точность: <input class="short-input" type="number" @bind="a"/></label>
+	<div class="button-box">
+		<button type="button" class="btn btn-primary" @onclick="Magic">Продолжить</button>
+		<button type="button" class="btn btn-primary" disabled="@(!_isClicked)" @onclick="async () => await CalcAndDraw()">Вычислить</button>
+	</div>
 </div>
 
-@if (clicked)
+@if (_isClicked)
 {
-	<table class="table">
-		@* <thead> *@
-		@* <tr> *@
-		@* 	<th>Remove</th> *@
-		@* 	<th>Date</th> *@
-		@* 	<th>Description</th> *@
-		@* 	<th>Is Complete</th> *@
-		@* </tr> *@
-		@* </thead> *@
+	<table class="table left62">
+		<thead style="text-align:center">
+		<tr>
+			<td>y\x</td>
+			@foreach (var x in _xs)
+			{
+				<td>@x</td>
+			}
+		</tr>
+		</thead>
 		<tbody>
-		@for (var i = 0; i < Ys.Length; i++)
+		@for (var i = 0; i < _ys.Length; i++)
 		{
 			// see https://stackoverflow.com/a/56426146/323447
 			var iCopy = i;
 			<tr>
-				@for (var j = 0; j < Xs.Length; j++)
+				<label style="margin:16px auto auto 12px; ">@_ys[i]</label>
+				@for (var j = 0; j < _xs.Length; j++)
 				{
 					var jCopy = j;
 
-					<td>
-						<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]"
-						       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/>
+					<td class="td-matrix">
+						<input class="input-matrix" type="number" id="@($"_ns{i}{j}")" value="@_ns[i, j]"
+						       @onchange="@(e => _ns[iCopy, jCopy] = e.Value.ToString())"/>
 					</td>
-        @* 					<label for="@($"ns{i}{j}")">@i</label> *@
-@*         					<input type="number" id="@($"ns{i}{j}")" value="@ns[i, j]" *@
-@*         					       @onchange="@(e => ns[iCopy, jCopy] = e.Value.ToString())"/> *@
 				}
 			</tr>
 		}
@@ -66,96 +51,117 @@
 	</table>
 }
 
-<div>
-	@* <button type="button" class="btn btn-primary" @onclick="Magic2"> *@
-	@* 	Click *@
-	@* </button> *@
-	<button type="button" class="btn btn-primary" @onclick="() => CalcAndDraw(XsInput, YsInput, ns, a)">Draw</button>
-</div>
-
 <div class="" style="display: flex; justify-content: flex-start">
 	<PlotlyChart style="height: 60vh; min-height: 350px; min-width: 100vh; width: 100px"
-	             @bind-Config="config" @bind-Layout="layout" @ref="chart"/>
-	@if (analysis != null)
+	             @bind-Config="config" @bind-Layout="layout" @ref="_chart"/>
+	@if (_analysis == null)
 	{
-		<div>
-			<p>Среднее значение Х: @analysis.MeanX</p>
-			<p>Среднее значение Y: @analysis.MeanY</p>
-			<p>Значение Sx: @analysis.Sx</p>
-			<p>Значение Sy: @analysis.Sy</p>
-			<p>Коэффициент корреляции: @analysis.Correlation</p>
-			<p>Значимость: @analysis.SignificanceCorrelation</p>
-			<p>@analysis.ConfidenceIntervalCorrelation</p>
-			<p>Эмпирическое уравнение регрессии Y на X: @analysis.EquationYX</p>
-			<p>@analysis.confidenceIntervalA</p>
-			<p>@analysis.confidenceIntervalB</p>
-			<p>Коэффициент детерминации: @analysis.Determination</p>
-			<p>@analysis.Adequacy</p>
+		<div></div>
+	}
+	else if (_analysis == null && _isClicked)
+	{
+		<div>Загрузка...</div>
+	}
+	else
+	{
+		<div class="result-box">
+			<h2>Результат: </h2>
+			<div>
+				<p>Среднее значение Х: <span>@_analysis.MeanX</span></p>
+				<p>Среднее значение Y: <span>@_analysis.MeanY</span></p>
+				<p>Значение Sx: <span>@_analysis.Sx</span></p>
+				<p>Значение Sy: <span>@_analysis.Sy</span></p>
+				<p>Коэффициент корреляции: <span>@_analysis.Correlation</span></p>
+				<p>
+					<span>@_analysis.SignificanceCorrelation</span>
+				</p>
+				<p>Доверительный интервал: <span>@_analysis.ConfidenceIntervalCorrelation</span></p>
+				<p>Уравнение Y на X: <span>@_analysis.EquationYX</span></p>
+				<p>Доверительный интервал: <span>@_analysis.confidenceIntervalA</span></p>
+				<p>Доверительный интервал: <span>@_analysis.confidenceIntervalB</span></p>
+				<p>Коэффициент детерминации: <span>@_analysis.Determination</span></p>
+				<p>
+					<span>@_analysis.Adequacy</span>
+				</p>
+			</div>
 		</div>
 	}
 </div>
 
 @code {
 
-	private string XsInput;
-	private string YsInput;
-	private double[] Xs;
-	private double[] Ys;
+	private string _xsInput = "5.0; 10.0; 15.0; 20.0; 25.0";
+	private string _ysInput = "10.0; 11.0; 12.0; 13.0";
+	private double[] _xs;
+	private double[] _ys;
 	private double a = 0.05;
-	private string[,] ns;
-	private List<string> effects = new List<string>() {"a", "b", "c"};
-	private bool clicked;
-	private MathStatistics.AnalysisTable analysis;
-	PlotlyChart chart;
+	private string[,] _ns;
+	private bool _isClicked;
+	private MathStatistics.AnalysisTable _analysis;
+	private PlotlyChart _chart;
 
 	Config config = new Config
 	{
 		Responsive = true
 	};
 
-	Layout layout = new Layout();
+	Layout layout = new Layout
+	{
+		Title = new Title
+		{
+			Text = "Корреляционное поле"
+		}
+	};
 
 	private void Magic()
 	{
-		var xString = XsInput.Replace(" ", "").Split(";");
-		var yString = YsInput.Replace(" ", "").Split(";");
-		Xs = Array.ConvertAll(xString, Utils.StringToDouble);
-		Ys = Array.ConvertAll(yString, Utils.StringToDouble);
-		clicked = true;
-	// ns = new string[XsInput.Length,YsInput.Length];
-		ns  = new[,]{{"0", "0", "0", "1", "4"}, {"0", "3", "6", "4", "1"}, {"1", "3", "2", "0", "1"}, {"3", "0", "1", "0", "0"}};
+		_xs = Utils.StringToNumber(_xsInput);
+	// _xs = new[] {5.0, 10.0, 15.0, 20.0, 25.0};
+		_ys = Utils.StringToNumber(_ysInput);
+	// _ys = new[] {10.0, 11.0, 12.0, 13.0};
+		_isClicked = true;
+	// _ns = new string[_ys.Length, _xs.Length];
+		_ns = new[,] {{"0", "0", "0", "1", "4"}, {"0", "3", "6", "4", "1"}, {"1", "3", "2", "0", "1"}, {"3", "0", "1", "0", "0"}};
 	}
 
-	private async Task CalcAndDraw(string xs, string ys, string[,] ns, double a)
+	private async Task CalcAndDraw()
 	{
 		try
 		{
-			analysis = await Service.GetAnalysisTableAsync(xs, ys, ns, a);
+			if (_xs.Length < 3 || _ys.Length < 3)
+			{
+				await JsRuntime.InvokeVoidAsync("alert", "Длина данных должна быть не меньше трёх!");
+				return;
+			}
+
+			_analysis = await Service.GetAnalysisTableAsync(_xs, _ys, _ns, a);
 		}
-		catch (AggregateException)
+		catch (Exception)
 		{
+			await JsRuntime.InvokeVoidAsync("alert", "Недопустимое введённое значение!");
 			return;
-			;
 		}
 
-		await chart.AddTrace(new Scatter
+		await _chart.AddTrace(new Scatter
 		{
 			Name = "Исходные данные",
 			Mode = ModeFlag.Markers,
-			X = analysis.Xs,
-			Y = analysis.NyWs,
+			X = _analysis.Xs,
+			Y = _analysis.NyWs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker {Color = "#33126F"}
 		});
 
-		await chart.AddTrace(new Scatter
+		await _chart.AddTrace(new Scatter
 		{
 			Name = "Уравнение регрессии",
 			Mode = ModeFlag.Lines,
-			X = analysis.Xs,
-			Y = analysis.Fxs,
+			X = _analysis.Xs,
+			Y = _analysis.Fxs,
 			XAxis = "X",
-			YAxis = "Y"
+			YAxis = "Y",
+			Marker = new Marker {Color = "#902CA5"}
 		});
 	}
 
