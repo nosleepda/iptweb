@@ -1,10 +1,15 @@
 ﻿namespace MathStatistics
 
 open System.Collections.Generic
+open MathNet.Numerics.Distributions
 
 type StatisticsData(sourceData: double[]) =
     
-    let sortedData = sourceData |> List.ofSeq |> List.sort
+    let rand mean stdDev =
+        let normalDist = Normal(mean, stdDev);
+        normalDist.Sample()
+    
+    let sortedData = List.init 300000 (fun _ -> rand 100.0 10.0) |> List<double> |> List.ofSeq |> List.sort
     
     let k =
         sortedData.Length
